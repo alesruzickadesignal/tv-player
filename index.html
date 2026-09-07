@@ -168,8 +168,8 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
 /* side panel (subtitles/audio) — rozměry dle Figmy „sport / panel" 640×1080 */
 #panel{position:absolute;right:0;top:0;width:640px;height:1080px;padding:100px 32px 0;display:flex;flex-direction:column;gap:40px;visibility:hidden;opacity:0;transition:opacity .26s ease-out,visibility 0s .26s;background:linear-gradient(90deg,rgba(12,13,18,0) 0%,#0e1016 25%)}
 #stage.panelOpen #panel{visibility:visible;opacity:1;transition:opacity .26s ease-out,visibility 0s}
-.pSec h3,.pItem{opacity:0;transform:translateX(28px);transition:opacity .001s,transform .001s}
-#stage.panelOpen .pSec h3,#stage.panelOpen .pItem{opacity:1;transform:none;transition:opacity .3s ease-out,transform .42s cubic-bezier(.16,1,.3,1),background .2s,color .2s,border-radius .2s;transition-delay:calc(var(--i,0)*35ms + 60ms)}
+/* Položky nemají vlastní vstupní animaci – panel se prolíná a přijíždí jako celek (#panel).
+   Dřívější kaskáda po položkách brzdila reakci fokusu a problikávala. */
 #stage{transition:background-color .45s ease-out}
 #stage.panelOpen{background:#0e1016}
 #panelBg{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .45s ease-out;background:radial-gradient(ellipse at 20% 80%,rgba(40,20,20,.6),transparent 60%),radial-gradient(ellipse at 20% 10%,rgba(8,40,90,.45),transparent 55%)}
@@ -724,8 +724,7 @@ $('#epgTrack').innerHTML=EPG.map((e,i)=>`<div class="card${e[2]?' live':''}" dat
 document.querySelectorAll('.card').forEach(c=>c.onclick=e=>{e.stopPropagation();S.zone='epg';S.epgIdx=+c.dataset.i;showUI();activate()});
 
 const PANEL={subs:[['off','Vypnuto'],['cs','Čeština'],['en','Angličtina']],audio:[['cs','Čeština'],['orig','Original'],['ad','Zvukový popis']]};
-let _pi=0;
-for(const sec in PANEL){const secEl=document.querySelector(`.pSec[data-sec="${sec}"]`);secEl.querySelector('h3').style.setProperty('--i',_pi++);const box=document.createElement('div');box.className='pItems';secEl.appendChild(box);PANEL[sec].forEach((it,i)=>{const d=document.createElement('div');d.className='pItem';d.dataset.sec=sec;d.dataset.val=it[0];d.dataset.i=i;d.style.setProperty('--i',_pi++);d.innerHTML='<span class="chk">'+I.check+'</span>'+it[1];d.onclick=e=>{e.stopPropagation();S.panelSec=sec;S.panelIdx=i;activate()};box.appendChild(d)})}
+for(const sec in PANEL){const secEl=document.querySelector(`.pSec[data-sec="${sec}"]`);const box=document.createElement('div');box.className='pItems';secEl.appendChild(box);PANEL[sec].forEach((it,i)=>{const d=document.createElement('div');d.className='pItem';d.dataset.sec=sec;d.dataset.val=it[0];d.dataset.i=i;d.innerHTML='<span class="chk">'+I.check+'</span>'+it[1];d.onclick=e=>{e.stopPropagation();S.panelSec=sec;S.panelIdx=i;activate()};box.appendChild(d)})}
 function openPanel(sec){S.panelSec=sec;S.panelIdx=PANEL[sec].findIndex(x=>x[0]===(sec==='subs'?S.subs:S.audio));stage.classList.add('panelOpen');clearTimeout(S.hideTimer);render()}
 function closePanel(){stage.classList.remove('panelOpen');S.zone='buttons';showUI()}
 
