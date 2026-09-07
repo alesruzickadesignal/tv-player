@@ -77,8 +77,8 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
 .btn{height:78px;min-width:78px;border-radius:50px;display:flex;align-items:center;padding:0 17px;color:var(--fg);cursor:pointer;white-space:nowrap;font:500 30px Roboto;position:relative}
 .btn svg{width:44px;height:44px;flex:none}
 .btn .lblw{display:grid;grid-template-columns:0fr}
-.btn .lbl{display:block;min-width:0;overflow:hidden;padding-left:16px;opacity:0}
-.btn.focus .lblw,.btn.labeled .lblw{grid-template-columns:1fr}
+.btn .lbl{display:block;min-width:0;overflow:hidden;opacity:0}
+.btn.focus .lblw,.btn.labeled .lblw{grid-template-columns:1fr;padding-left:16px}
 .btn.focus .lbl,.btn.labeled .lbl{opacity:1}
 .btn.focus{background:var(--fg);color:var(--ink)}
 .btn.disabled{color:var(--fg-dis)}
@@ -89,7 +89,7 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
 /* 1 – bez animace: vše naskočí okamžitě */
 /* 2 – rozjezd (výchozí): šířka roste přesně na text, popisek se prolne */
 [data-anim=expand] .btn{transition:background-color .2s ease-out,color .2s ease-out}
-[data-anim=expand] .btn .lblw{transition:grid-template-columns .26s cubic-bezier(.33,1,.68,1)}
+[data-anim=expand] .btn .lblw{transition:grid-template-columns .26s cubic-bezier(.33,1,.68,1),padding-left .26s cubic-bezier(.33,1,.68,1)}
 [data-anim=expand] .btn .lbl{transition:opacity .12s ease-out}
 [data-anim=expand] .btn.focus .lbl,[data-anim=expand] .btn.labeled .lbl{transition:opacity .18s .08s ease-out}
 
@@ -99,19 +99,19 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
 
 /* 4 – zprava: popisek vyjede zpod ikony */
 [data-anim=slide] .btn{transition:background-color .2s ease-out,color .2s ease-out}
-[data-anim=slide] .btn .lblw{transition:grid-template-columns .3s cubic-bezier(.22,1,.36,1)}
+[data-anim=slide] .btn .lblw{transition:grid-template-columns .3s cubic-bezier(.22,1,.36,1),padding-left .3s cubic-bezier(.22,1,.36,1)}
 [data-anim=slide] .btn .lbl{transform:translateX(22px);transition:opacity .18s ease-out,transform .3s cubic-bezier(.22,1,.36,1)}
 [data-anim=slide] .btn.focus .lbl,[data-anim=slide] .btn.labeled .lbl{transform:none;transition:opacity .2s .06s ease-out,transform .32s cubic-bezier(.22,1,.36,1)}
 
 /* 5 – pružina: šířka lehce přepruží */
 [data-anim=spring] .btn{transition:background-color .2s ease-out,color .2s ease-out}
-[data-anim=spring] .btn .lblw{transition:grid-template-columns .44s cubic-bezier(.34,1.4,.64,1)}
+[data-anim=spring] .btn .lblw{transition:grid-template-columns .44s cubic-bezier(.34,1.4,.64,1),padding-left .44s cubic-bezier(.34,1.4,.64,1)}
 [data-anim=spring] .btn .lbl{transition:opacity .14s ease-out}
 [data-anim=spring] .btn.focus .lbl,[data-anim=spring] .btn.labeled .lbl{transition:opacity .2s .1s ease-out}
 
 /* 6 – nádech: pilulka se u fokusu nepatrně nadechne */
 [data-anim=pop] .btn{transition:background-color .2s ease-out,color .2s ease-out,transform .28s cubic-bezier(.34,1.5,.64,1)}
-[data-anim=pop] .btn .lblw{transition:grid-template-columns .28s cubic-bezier(.33,1,.68,1)}
+[data-anim=pop] .btn .lblw{transition:grid-template-columns .28s cubic-bezier(.33,1,.68,1),padding-left .28s cubic-bezier(.33,1,.68,1)}
 [data-anim=pop] .btn .lbl{transition:opacity .14s ease-out}
 [data-anim=pop] .btn.focus{transform:scale(1.06)}
 [data-anim=pop] .btn.focus .lbl{transition:opacity .2s .08s ease-out}
@@ -120,9 +120,9 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
 
 /* 7 – prodleva: fokus hned zvýrazní ikonu, popisek se odkryje až po prodlevě (--lblDelay) */
 [data-anim=delay] .btn{transition:background-color .18s ease-out,color .18s ease-out}
-[data-anim=delay] .btn .lblw{transition:grid-template-columns .2s cubic-bezier(.33,1,.68,1)}
+[data-anim=delay] .btn .lblw{transition:grid-template-columns .2s cubic-bezier(.33,1,.68,1),padding-left .2s cubic-bezier(.33,1,.68,1)}
 [data-anim=delay] .btn .lbl{transition:opacity .1s ease-out}
-[data-anim=delay] .btn.focus:not(.labeled) .lblw{transition:grid-template-columns .26s cubic-bezier(.33,1,.68,1) var(--lblDelay,700ms)}
+[data-anim=delay] .btn.focus:not(.labeled) .lblw{transition:grid-template-columns .26s cubic-bezier(.33,1,.68,1) var(--lblDelay,700ms),padding-left .26s cubic-bezier(.33,1,.68,1) var(--lblDelay,700ms)}
 [data-anim=delay] .btn.focus:not(.labeled) .lbl{transition:opacity .2s ease-out calc(var(--lblDelay,700ms) + 60ms)}
 
 /* stisk a výměna ikony – mimo režim „bez animace" */
@@ -868,8 +868,8 @@ function setDelay(ms){stage.style.setProperty('--lblDelay',ms+'ms');try{localSto
 document.querySelectorAll('#delayRow button').forEach(b=>b.onclick=()=>setDelay(+b.dataset.delay));
 let _d=700;try{_d=+localStorage.getItem('lblDelay')||700}catch(e){}
 setDelay(_d);
-function setAnim(k){stage.dataset.anim=k;try{localStorage.setItem('anim',k)}catch(e){}document.querySelectorAll('#anims button').forEach(b=>b.classList.toggle('act',b.dataset.anim===k));$('#delayRow').classList.toggle('on',k==='delay')}
-document.querySelectorAll('#anims button').forEach(b=>b.onclick=()=>setAnim(b.dataset.anim));
+function setAnim(k){stage.dataset.anim=k;try{localStorage.setItem('anim',k)}catch(e){}document.querySelectorAll('#anims button[data-anim]').forEach(b=>b.classList.toggle('act',b.dataset.anim===k));$('#delayRow').classList.toggle('on',k==='delay')}
+document.querySelectorAll('#anims button[data-anim]').forEach(b=>b.onclick=()=>setAnim(b.dataset.anim));
 let _a='expand';try{_a=localStorage.getItem('anim')||'expand'}catch(e){}
 setAnim(_a);
 document.querySelectorAll('#sources button').forEach(b=>b.onclick=()=>{if(S.ad)stopAd(false);loadSource(b.dataset.src)});
