@@ -2,6 +2,8 @@
 
 Interaktivní prototyp nového TV playeru (SmartTV / ATV) podle Figmy „player – vibe app" a „sport-player – design dle new playeru". Není to produkční kód – jde o živou ukázku chování: fokus a stavy tlačítek, časová osa a přetáčení, klientské i serverové reklamy, panel Titulky/Zvuk a sportovní režim (Průběh, Statistiky, Sestavy, Nastavení, gólový toast).
 
+**Živá ukázka:** https://alesruzickadesignal.github.io/tv-player/
+
 ## Spuštění
 
 Statický web, stačí jakýkoli HTTP server:
