@@ -77,8 +77,8 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
 .btn{height:78px;min-width:78px;border-radius:50px;display:flex;align-items:center;padding:0 17px;color:var(--fg);cursor:pointer;white-space:nowrap;font:500 30px Roboto;position:relative}
 .btn svg{width:44px;height:44px;flex:none}
 .btn .lblw{display:grid;grid-template-columns:0fr}
-.btn .lbl{display:block;min-width:0;overflow:hidden;padding-left:16px;opacity:0}
-.btn.focus .lblw,.btn.labeled .lblw{grid-template-columns:1fr}
+.btn .lbl{display:block;min-width:0;overflow:hidden;opacity:0}
+.btn.focus .lblw,.btn.labeled .lblw{grid-template-columns:1fr;padding-left:16px}
 .btn.focus .lbl,.btn.labeled .lbl{opacity:1}
 .btn.focus{background:var(--fg);color:var(--ink)}
 .btn.disabled{color:var(--fg-dis)}
@@ -89,7 +89,7 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
 /* 1 – bez animace: vše naskočí okamžitě */
 /* 2 – rozjezd (výchozí): šířka roste přesně na text, popisek se prolne */
 [data-anim=expand] .btn{transition:background-color .2s ease-out,color .2s ease-out}
-[data-anim=expand] .btn .lblw{transition:grid-template-columns .26s cubic-bezier(.33,1,.68,1)}
+[data-anim=expand] .btn .lblw{transition:grid-template-columns .26s cubic-bezier(.33,1,.68,1),padding-left .26s cubic-bezier(.33,1,.68,1)}
 [data-anim=expand] .btn .lbl{transition:opacity .12s ease-out}
 [data-anim=expand] .btn.focus .lbl,[data-anim=expand] .btn.labeled .lbl{transition:opacity .18s .08s ease-out}
 
@@ -99,27 +99,35 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
 
 /* 4 – zprava: popisek vyjede zpod ikony */
 [data-anim=slide] .btn{transition:background-color .2s ease-out,color .2s ease-out}
-[data-anim=slide] .btn .lblw{transition:grid-template-columns .3s cubic-bezier(.22,1,.36,1)}
+[data-anim=slide] .btn .lblw{transition:grid-template-columns .3s cubic-bezier(.22,1,.36,1),padding-left .3s cubic-bezier(.22,1,.36,1)}
 [data-anim=slide] .btn .lbl{transform:translateX(22px);transition:opacity .18s ease-out,transform .3s cubic-bezier(.22,1,.36,1)}
 [data-anim=slide] .btn.focus .lbl,[data-anim=slide] .btn.labeled .lbl{transform:none;transition:opacity .2s .06s ease-out,transform .32s cubic-bezier(.22,1,.36,1)}
 
 /* 5 – pružina: šířka lehce přepruží */
 [data-anim=spring] .btn{transition:background-color .2s ease-out,color .2s ease-out}
-[data-anim=spring] .btn .lblw{transition:grid-template-columns .44s cubic-bezier(.34,1.4,.64,1)}
+[data-anim=spring] .btn .lblw{transition:grid-template-columns .44s cubic-bezier(.34,1.4,.64,1),padding-left .44s cubic-bezier(.34,1.4,.64,1)}
 [data-anim=spring] .btn .lbl{transition:opacity .14s ease-out}
 [data-anim=spring] .btn.focus .lbl,[data-anim=spring] .btn.labeled .lbl{transition:opacity .2s .1s ease-out}
 
 /* 6 – nádech: pilulka se u fokusu nepatrně nadechne */
 [data-anim=pop] .btn{transition:background-color .2s ease-out,color .2s ease-out,transform .28s cubic-bezier(.34,1.5,.64,1)}
-[data-anim=pop] .btn .lblw{transition:grid-template-columns .28s cubic-bezier(.33,1,.68,1)}
+[data-anim=pop] .btn .lblw{transition:grid-template-columns .28s cubic-bezier(.33,1,.68,1),padding-left .28s cubic-bezier(.33,1,.68,1)}
 [data-anim=pop] .btn .lbl{transition:opacity .14s ease-out}
 [data-anim=pop] .btn.focus{transform:scale(1.06)}
 [data-anim=pop] .btn.focus .lbl{transition:opacity .2s .08s ease-out}
 [data-anim=pop] .btn.disabled.focus{transform:none}
 
+
+/* 7 – prodleva: fokus hned zvýrazní ikonu, popisek se odkryje až po prodlevě (--lblDelay) */
+[data-anim=delay] .btn{transition:background-color .18s ease-out,color .18s ease-out}
+[data-anim=delay] .btn .lblw{transition:grid-template-columns .2s cubic-bezier(.33,1,.68,1),padding-left .2s cubic-bezier(.33,1,.68,1)}
+[data-anim=delay] .btn .lbl{transition:opacity .1s ease-out}
+[data-anim=delay] .btn.focus:not(.labeled) .lblw{transition:grid-template-columns .26s cubic-bezier(.33,1,.68,1) var(--lblDelay,700ms),padding-left .26s cubic-bezier(.33,1,.68,1) var(--lblDelay,700ms)}
+[data-anim=delay] .btn.focus:not(.labeled) .lbl{transition:opacity .2s ease-out calc(var(--lblDelay,700ms) + 60ms)}
+
 /* stisk a výměna ikony – mimo režim „bez animace" */
-:is([data-anim=expand],[data-anim=fade],[data-anim=slide],[data-anim=spring],[data-anim=pop]) .btn.pressed svg{animation:press .22s ease-out}
-:is([data-anim=expand],[data-anim=fade],[data-anim=slide],[data-anim=spring],[data-anim=pop]) .btn.swap svg{animation:swap .2s ease-out}
+:is([data-anim=expand],[data-anim=fade],[data-anim=slide],[data-anim=spring],[data-anim=pop],[data-anim=delay]) .btn.pressed svg{animation:press .22s ease-out}
+:is([data-anim=expand],[data-anim=fade],[data-anim=slide],[data-anim=spring],[data-anim=pop],[data-anim=delay]) .btn.swap svg{animation:swap .2s ease-out}
 @keyframes press{0%{opacity:1}40%{opacity:.45}100%{opacity:1}}
 @keyframes swap{0%{opacity:0}100%{opacity:1}}
 #rowMain:not(.hasSport) .right{visibility:hidden}
@@ -188,6 +196,9 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
 #side button.act{border-color:var(--blue);background:rgba(1,163,254,.12)}
 #side button small{display:block;color:#8a90a0;font-size:11px;margin-top:2px}
 #side .rowb{display:flex;gap:6px}
+#side #delayRow{display:none;margin:-2px 0 6px;padding-left:10px}
+#side #delayRow.on{display:flex}
+#side #delayRow button{font-size:12px;padding:6px 4px;text-align:center}
 #side .rowb button{flex:1}
 #side label.tog{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:#1f222c;border-radius:8px;margin-bottom:6px;cursor:pointer;border:1px solid rgba(255,255,255,.08)}
 #side kbd{background:#2a2e3a;border-radius:4px;padding:1px 6px;font:11px ui-monospace,monospace;color:#fff;border:1px solid rgba(255,255,255,.12)}
@@ -850,10 +861,15 @@ $('#track').addEventListener('click',e=>{e.stopPropagation();if(S.ad)return;cons
 
 /* ---------------- sidebar ---------------- */
 $('#sources').innerHTML=Object.entries(SRC).map(([k,s])=>`<button data-src="${k}">${s.name}<small>${s.sub}</small></button>`).join('');
-const ANIMS=[['none','Bez animace','popisek i pilulka naskočí okamžitě'],['expand','Rozjezd','šířka roste přesně na text (výchozí)'],['fade','Prolnutí','šířka skokem, prolne se jen popisek'],['slide','Zprava','popisek vyjede zpod ikony'],['spring','Pružina','šířka na konci lehce přepruží'],['pop','Nádech','pilulka se u fokusu nepatrně zvětší']];
-$('#anims').innerHTML=ANIMS.map(a=>`<button data-anim="${a[0]}">${a[1]}<small>${a[2]}</small></button>`).join('');
-function setAnim(k){stage.dataset.anim=k;try{localStorage.setItem('anim',k)}catch(e){}document.querySelectorAll('#anims button').forEach(b=>b.classList.toggle('act',b.dataset.anim===k))}
-document.querySelectorAll('#anims button').forEach(b=>b.onclick=()=>setAnim(b.dataset.anim));
+const ANIMS=[['none','Bez animace','popisek i pilulka naskočí okamžitě'],['expand','Rozjezd','šířka roste přesně na text (výchozí)'],['fade','Prolnutí','šířka skokem, prolne se jen popisek'],['slide','Zprava','popisek vyjede zpod ikony'],['spring','Pružina','šířka na konci lehce přepruží'],['pop','Nádech','pilulka se u fokusu nepatrně zvětší'],['delay','Prodleva','fokus hned, popisek až po chvíli']];
+$('#anims').innerHTML=ANIMS.map(a=>`<button data-anim="${a[0]}">${a[1]}<small>${a[2]}</small></button>`).join('')
+  +'<div class="rowb" id="delayRow">'+[300,500,700,1000,1500,2000].map(d=>`<button data-delay="${d}">${d<1000?d+'ms':(d/1000)+'s'}</button>`).join('')+'</div>';
+function setDelay(ms){stage.style.setProperty('--lblDelay',ms+'ms');try{localStorage.setItem('lblDelay',ms)}catch(e){}document.querySelectorAll('#delayRow button').forEach(b=>b.classList.toggle('act',+b.dataset.delay===ms))}
+document.querySelectorAll('#delayRow button').forEach(b=>b.onclick=()=>setDelay(+b.dataset.delay));
+let _d=700;try{_d=+localStorage.getItem('lblDelay')||700}catch(e){}
+setDelay(_d);
+function setAnim(k){stage.dataset.anim=k;try{localStorage.setItem('anim',k)}catch(e){}document.querySelectorAll('#anims button[data-anim]').forEach(b=>b.classList.toggle('act',b.dataset.anim===k));$('#delayRow').classList.toggle('on',k==='delay')}
+document.querySelectorAll('#anims button[data-anim]').forEach(b=>b.onclick=()=>setAnim(b.dataset.anim));
 let _a='expand';try{_a=localStorage.getItem('anim')||'expand'}catch(e){}
 setAnim(_a);
 document.querySelectorAll('#sources button').forEach(b=>b.onclick=()=>{if(S.ad)stopAd(false);loadSource(b.dataset.src)});
