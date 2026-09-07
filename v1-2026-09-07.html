@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Player – vibe prototyp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Fira+Sans:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
+<style>
+:root{
+  --fg:#eaecf2; --fg-dis:rgba(174,180,194,.55); --ink:#212633; --g900:#1b1e29;
+  --blue:#01a3fe; --yellow:#fec84b; --red:#f04438; --err500:#f04438; --err600:#d92d20;
+  --pill:rgba(0,0,0,.5); --track:rgba(255,255,255,.5);
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Roboto,system-ui,sans-serif;overflow:hidden}
+#app{display:flex;height:100vh;width:100vw}
+#stageWrap{flex:1;display:flex;align-items:center;justify-content:center;position:relative;min-width:0}
+#stage{width:1920px;height:1080px;position:relative;overflow:hidden;background:#000;transform-origin:center center;flex:none;user-select:none;border-radius:8px;box-shadow:0 0 0 1px rgba(255,255,255,.06),0 30px 80px rgba(0,0,0,.6)}
+
+/* --- video layer --- */
+#videoLayer{position:absolute;inset:0;transition:left .48s cubic-bezier(.16,1,.3,1),top .48s cubic-bezier(.16,1,.3,1),width .48s cubic-bezier(.16,1,.3,1),height .48s cubic-bezier(.16,1,.3,1),border-radius .3s ease-out;overflow:hidden;background:#000 center/cover no-repeat}
+#videoLayer.content{background-image:url(img/video.jpg)}
+#videoLayer.ad{background-image:url(img/ad.jpg)}
+#vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:transparent;opacity:0;transition:opacity .4s}
+#vid.ready{opacity:1}
+#stage.panelOpen #videoLayer{left:32px;top:189px;width:1250px;height:703px;border-radius:20px}
+#shadow{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0) 0%,rgba(0,0,0,.6) 70.2%);opacity:0;transition:opacity .3s}
+#stage.uiVisible #shadow{opacity:1}
+.subtitleText{position:absolute;left:0;right:0;top:615px;height:56px;text-align:center;font:400 40px/56px Roboto;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.9);opacity:0;transition:opacity .3s .2s ease-out;pointer-events:none}
+#stage.panelOpen .subtitleText{opacity:1}
+#buffering{position:absolute;left:50%;top:50%;width:90px;height:90px;margin:-45px;border-radius:50%;border:6px solid rgba(255,255,255,.2);border-top-color:#fff;animation:spin .9s linear infinite;opacity:0;transition:opacity .3s;pointer-events:none}
+#stage.buffering #buffering{opacity:1}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* --- UI block --- */
+#ui{position:absolute;left:121px;top:567px;width:1678px;height:314px;opacity:0;transform:translateY(18px);transition:opacity .28s,transform .28s;pointer-events:none}
+#stage.uiVisible #ui{opacity:1;transform:none;pointer-events:auto}
+#stage.panelOpen #ui,#stage.panelOpen #epg{display:none}
+#channel{position:absolute;left:4px;top:0;font:500 24px Roboto;color:var(--fg);text-shadow:1px 1px 3px rgba(0,0,0,.8)}
+#title{position:absolute;left:4px;top:46px;width:966px;font:500 38px/48px Roboto;color:var(--fg);text-shadow:1px 1px 3px rgba(0,0,0,.8)}
+.texts{transition:opacity .2s}
+#stage.seeking .texts{opacity:0}
+
+/* timeline */
+#timeline{position:absolute;left:0;top:172px;width:1678px;height:36px;display:flex;align-items:center;gap:24px}
+#timeline .t{width:75px;font:400 30px/36px "Fira Sans";color:var(--fg);flex:none}
+#timeline .t.r{text-align:right}
+#track{flex:1;height:10px;border-radius:6px;background:var(--track);position:relative}
+#track.ad{background:rgba(255,255,255,.35)}
+#progress{position:absolute;left:0;top:0;height:100%;border-radius:6px;background:var(--blue);width:0;transition:width .4s linear}
+#track.ad #progress{background:var(--yellow)}
+#buffer{position:absolute;left:0;top:0;height:100%;border-radius:6px;background:rgba(255,255,255,.25);width:0}
+.adblock{position:absolute;top:0;height:100%;background:var(--yellow);border-radius:6px}
+#startMark{position:absolute;top:50%;width:6px;height:24px;margin-top:-12px;border-radius:14px;background:var(--fg);box-shadow:0 2px 6px rgba(0,0,0,.4);left:3%}
+#seeker{position:absolute;top:50%;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;background:var(--fg);box-shadow:0 2px 6px rgba(0,0,0,.5);display:none;transition:transform .15s,left .4s linear}
+#stage.uiVisible #seeker{display:block}
+#timeline.focus #seeker{transform:scale(1.25);box-shadow:0 0 0 6px rgba(255,255,255,.25),0 2px 6px rgba(0,0,0,.5)}
+#seekThumb{position:absolute;bottom:52px;width:206px;transform:translateX(-50%);display:none;text-align:center}
+#stage.seeking #seekThumb{display:block}
+#seekThumb .img{width:206px;height:116px;border-radius:14px;border:3px solid #fff;background:#000 url(img/epg.jpg) center/cover;box-shadow:0 8px 30px rgba(0,0,0,.6);overflow:hidden}
+#seekThumb video{width:100%;height:100%;object-fit:cover;display:block}
+#seekThumb .tm{font:400 30px/36px "Fira Sans";color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,.8);margin-top:8px}
+
+/* rows */
+.row{position:absolute;left:0;width:1678px;height:86px;display:flex}
+#rowMain{top:228px;justify-content:space-between}
+#rowTop{top:43px;justify-content:flex-end}
+#rowMain .left,#rowMain .center,#rowMain .right{display:flex}
+#rowMain .center{position:absolute;left:50%;transform:translateX(-50%)}
+.group{display:flex;gap:4px;padding:4px;border-radius:50px;background:var(--pill);backdrop-filter:blur(8px);align-items:center}
+.group:empty{display:none}
+
+/* button: kruh s ikonou → popisek. Typ animace řídí data-anim na #stage. */
+.btn{height:78px;min-width:78px;border-radius:50px;display:flex;align-items:center;padding:0 17px;color:var(--fg);cursor:pointer;white-space:nowrap;font:500 30px Roboto;position:relative}
+.btn svg{width:44px;height:44px;flex:none}
+.btn .lblw{display:grid;grid-template-columns:0fr}
+.btn .lbl{display:block;min-width:0;overflow:hidden;padding-left:16px;opacity:0}
+.btn.focus .lblw,.btn.labeled .lblw{grid-template-columns:1fr}
+.btn.focus .lbl,.btn.labeled .lbl{opacity:1}
+.btn.focus{background:var(--fg);color:var(--ink)}
+.btn.disabled{color:var(--fg-dis)}
+.btn.disabled.focus{background:transparent;color:var(--fg-dis)}
+.btn.rec-on svg{color:var(--err500)}
+.btn.rec-on.focus svg{color:var(--err600)}
+
+/* 1 – bez animace: vše naskočí okamžitě */
+/* 2 – rozjezd (výchozí): šířka roste přesně na text, popisek se prolne */
+[data-anim=expand] .btn{transition:background-color .2s ease-out,color .2s ease-out}
+[data-anim=expand] .btn .lblw{transition:grid-template-columns .26s cubic-bezier(.33,1,.68,1)}
+[data-anim=expand] .btn .lbl{transition:opacity .12s ease-out}
+[data-anim=expand] .btn.focus .lbl,[data-anim=expand] .btn.labeled .lbl{transition:opacity .18s .08s ease-out}
+
+/* 3 – prolnutí: šířka skokem, mění se jen barva a krytí popisku */
+[data-anim=fade] .btn{transition:background-color .24s ease-out,color .24s ease-out}
+[data-anim=fade] .btn .lbl{transition:opacity .24s ease-out}
+
+/* 4 – zprava: popisek vyjede zpod ikony */
+[data-anim=slide] .btn{transition:background-color .2s ease-out,color .2s ease-out}
+[data-anim=slide] .btn .lblw{transition:grid-template-columns .3s cubic-bezier(.22,1,.36,1)}
+[data-anim=slide] .btn .lbl{transform:translateX(22px);transition:opacity .18s ease-out,transform .3s cubic-bezier(.22,1,.36,1)}
+[data-anim=slide] .btn.focus .lbl,[data-anim=slide] .btn.labeled .lbl{transform:none;transition:opacity .2s .06s ease-out,transform .32s cubic-bezier(.22,1,.36,1)}
+
+/* 5 – pružina: šířka lehce přepruží */
+[data-anim=spring] .btn{transition:background-color .2s ease-out,color .2s ease-out}
+[data-anim=spring] .btn .lblw{transition:grid-template-columns .44s cubic-bezier(.34,1.4,.64,1)}
+[data-anim=spring] .btn .lbl{transition:opacity .14s ease-out}
+[data-anim=spring] .btn.focus .lbl,[data-anim=spring] .btn.labeled .lbl{transition:opacity .2s .1s ease-out}
+
+/* 6 – nádech: pilulka se u fokusu nepatrně nadechne */
+[data-anim=pop] .btn{transition:background-color .2s ease-out,color .2s ease-out,transform .28s cubic-bezier(.34,1.5,.64,1)}
+[data-anim=pop] .btn .lblw{transition:grid-template-columns .28s cubic-bezier(.33,1,.68,1)}
+[data-anim=pop] .btn .lbl{transition:opacity .14s ease-out}
+[data-anim=pop] .btn.focus{transform:scale(1.06)}
+[data-anim=pop] .btn.focus .lbl{transition:opacity .2s .08s ease-out}
+[data-anim=pop] .btn.disabled.focus{transform:none}
+
+/* stisk a výměna ikony – mimo režim „bez animace" */
+:is([data-anim=expand],[data-anim=fade],[data-anim=slide],[data-anim=spring],[data-anim=pop]) .btn.pressed svg{animation:press .22s ease-out}
+:is([data-anim=expand],[data-anim=fade],[data-anim=slide],[data-anim=spring],[data-anim=pop]) .btn.swap svg{animation:swap .2s ease-out}
+@keyframes press{0%{opacity:1}40%{opacity:.45}100%{opacity:1}}
+@keyframes swap{0%{opacity:0}100%{opacity:1}}
+#rowMain:not(.hasSport) .right{visibility:hidden}
+
+/* ad overlay elements */
+#adInfo{position:absolute;right:0;top:43px;height:86px;align-items:center;gap:24px;display:none}
+.adShadow{position:relative}
+.adShadow::before{content:'';position:absolute;inset:-18px -30px;background:#000;filter:blur(40px);border-radius:999px;opacity:.65;z-index:-1;pointer-events:none}
+#stage.adInfoOn #adInfo{display:flex}
+#adInfo .txt{font:500 26px Roboto;color:var(--fg);text-shadow:1px 1px 0 #000}
+.ring{width:78px;height:78px;border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center;font:500 26px Roboto;color:var(--yellow);text-shadow:1px 1px 0 #000}
+.ring svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:6}
+.ring .bg{stroke:rgba(0,0,0,.5)}
+.ring .fgc{stroke:var(--yellow);stroke-linecap:round;transition:stroke-dashoffset .9s linear}
+#adSkipWrap{position:absolute;right:120px;bottom:60px;display:none;align-items:center;gap:24px;z-index:5;transition:top .3s,bottom .3s}
+#stage.uiVisible #adSkipWrap{bottom:auto;top:610px;right:121px}
+#stage.adSkipOn #adSkipWrap{display:flex}
+#adSkipWrap .txt{font:500 26px Roboto;text-shadow:1px 1px 0 #000}
+
+/* EPG strip */
+#epg{position:absolute;left:0;top:945px;height:200px;width:1920px;z-index:2;opacity:0;transform:translateY(20px);transition:opacity .28s,transform .28s;pointer-events:none}
+#stage.uiVisible #epg{opacity:1;transform:none;pointer-events:auto}
+#epgTrack{position:absolute;left:-838px;top:0;display:flex;gap:16px;transition:left .3s var(--ease)}
+.card{width:500px;height:577px;border-radius:20px;background:rgba(27,30,41,.9);border:.5px solid rgba(255,255,255,.25);overflow:hidden;box-shadow:0 4px 64px rgba(255,255,255,.1),0 4px 16px rgba(255,255,255,.05);flex:none;transition:transform .3s var(--ease),border-color .2s,box-shadow .2s;cursor:pointer}
+.card .ct{padding:22px 24px 18px;font:500 30px/38px Roboto;color:var(--fg);height:112px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.card .ci{height:281px;background:url(img/epg.jpg) center/cover}
+.card .cm{padding:16px 24px;font:400 24px Roboto;color:rgba(234,236,242,.7)}
+.card.focus{transform:translateY(-40px);border-color:var(--fg);box-shadow:0 0 0 4px var(--fg),0 4px 64px rgba(255,255,255,.15)}
+.card.live .cm b{color:var(--red)}
+
+/* help pill */
+#helpPill{position:absolute;left:50%;top:40px;transform:translate(-50%,-20px);background:var(--pill);backdrop-filter:blur(8px);border-radius:50px;height:78px;padding:0 26px 0 32px;font:500 30px Roboto;color:var(--fg);display:flex;gap:16px;align-items:center;opacity:0;transition:.25s ease-out;pointer-events:none;z-index:6}
+#helpPill.on{opacity:1;transform:translate(-50%,0)}
+#helpPill svg{width:30px;height:30px;fill:none;stroke:var(--fg);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* side panel (subtitles/audio) — rozměry dle Figmy „sport / panel" 640×1080 */
+#panel{position:absolute;right:0;top:0;width:640px;height:1080px;padding:100px 32px 0;display:flex;flex-direction:column;gap:40px;visibility:hidden;opacity:0;transition:opacity .26s ease-out,visibility 0s .26s;background:linear-gradient(90deg,rgba(12,13,18,0) 0%,#0e1016 25%)}
+#stage.panelOpen #panel{visibility:visible;opacity:1;transition:opacity .26s ease-out,visibility 0s}
+.pSec h3,.pItem{opacity:0;transform:translateX(28px);transition:opacity .001s,transform .001s}
+#stage.panelOpen .pSec h3,#stage.panelOpen .pItem{opacity:1;transform:none;transition:opacity .3s ease-out,transform .42s cubic-bezier(.16,1,.3,1),background .2s,color .2s,border-radius .2s;transition-delay:calc(var(--i,0)*35ms + 60ms)}
+#stage{transition:background-color .45s ease-out}
+#stage.panelOpen{background:#0e1016}
+#panelBg{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .45s ease-out;background:radial-gradient(ellipse at 20% 80%,rgba(40,20,20,.6),transparent 60%),radial-gradient(ellipse at 20% 10%,rgba(8,40,90,.45),transparent 55%)}
+#stage.panelOpen #panelBg{opacity:1}
+.pSec{display:flex;flex-direction:column;gap:8px;width:576px}
+.pSec h3{margin:0;padding:8px 24px;font:700 30px/40px Roboto;color:var(--fg)}
+.pItems{display:flex;flex-direction:column;gap:4px}
+.pItem{display:flex;align-items:center;gap:20px;padding:17px 24px;border-radius:16px;font:400 32px/44px Roboto;color:var(--fg);cursor:pointer;width:100%;transition:background .2s,color .2s,border-radius .2s}
+.pItem .chk{width:44px;height:44px;flex:none;display:flex;align-items:center;justify-content:center}
+.pItem svg{width:40px;height:40px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;visibility:hidden}
+.pItem.sel svg{visibility:visible}
+.pItem.focus{background:var(--fg);color:var(--ink);border-radius:9999px;font-weight:700}
+
+/* toast */
+#toast{position:absolute;left:50%;top:40px;transform:translate(-50%,-20px);background:var(--pill);backdrop-filter:blur(8px);border-radius:50px;height:78px;padding:0 32px;font:500 30px Roboto;color:var(--fg);display:flex;align-items:center;opacity:0;transition:.3s var(--ease);pointer-events:none;max-width:1400px;text-align:center;z-index:7}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* --- control sidebar --- */
+#side{width:340px;flex:none;background:#14161d;border-left:1px solid rgba(255,255,255,.08);padding:18px 18px 30px;overflow:auto;font-size:13px;color:#c8ccd6}
+#side h1{font-size:15px;margin:0 0 4px;color:#fff}
+#side .sub{color:#8a90a0;font-size:12px;margin-bottom:14px}
+#side h2{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8a90a0;margin:18px 0 8px}
+#side button{display:block;width:100%;text-align:left;background:#1f222c;color:#e6e8ee;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 10px;margin-bottom:6px;font:inherit;cursor:pointer}
+#side button:hover{background:#2a2e3a}
+#side button.act{border-color:var(--blue);background:rgba(1,163,254,.12)}
+#side button small{display:block;color:#8a90a0;font-size:11px;margin-top:2px}
+#side .rowb{display:flex;gap:6px}
+#side .rowb button{flex:1}
+#side label.tog{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:#1f222c;border-radius:8px;margin-bottom:6px;cursor:pointer;border:1px solid rgba(255,255,255,.08)}
+#side kbd{background:#2a2e3a;border-radius:4px;padding:1px 6px;font:11px ui-monospace,monospace;color:#fff;border:1px solid rgba(255,255,255,.12)}
+#side .keys div{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed rgba(255,255,255,.06)}
+#status{font:11px ui-monospace,monospace;background:#0c0d12;border-radius:8px;padding:8px 10px;white-space:pre-wrap;color:#9fe0ff;margin-top:6px;line-height:1.5}
+#side .hint{color:#8a90a0;font-size:11px;margin-top:8px;line-height:1.4}
+</style>
+</head>
+<body>
+<div id="app">
+<div id="stageWrap">
+<div id="stage" class="content" tabindex="0">
+  <div id="panelBg"></div>
+  <div id="videoLayer" class="content">
+    <video id="vid" muted playsinline autoplay preload="auto"></video>
+    <div class="subtitleText">Půjdeme po schodech.</div>
+  </div>
+  <div id="buffering"></div>
+  <div id="shadow"></div>
+
+  <div id="helpPill">Otevřít seznam kanálů <svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></div>
+
+  <div id="ui">
+    <div id="channel" class="texts">12 NOVA</div>
+    <div id="title" class="texts">Předpověď počasí, Sportovní zprávy, Události v regionech</div>
+
+    <div id="rowTop" class="row"><div class="group" id="grpSkip"></div></div>
+    <div id="adInfo" class="adShadow"><span class="txt" id="adTxt">Reklama (1 z 2)</span><div class="ring" id="adRing"><svg viewBox="0 0 78 78"><circle class="bg" cx="39" cy="39" r="35"/><circle class="fgc" cx="39" cy="39" r="35" stroke-dasharray="219.9" stroke-dashoffset="0"/></svg><span id="adRingTxt">20s</span></div></div>
+
+    <div id="timeline">
+      <div class="t" id="tL">00:00</div>
+      <div id="track">
+        <div id="buffer"></div>
+        <div id="adblocks"></div>
+        <div id="progress"></div>
+        <div id="startMark"></div>
+        <div id="seeker"></div>
+        <div id="seekThumb"><div class="img"><video id="thumbVid" muted preload="auto" style="display:none"></video></div><div class="tm" id="seekTm">00:00</div></div>
+      </div>
+      <div class="t r" id="tR">00:00</div>
+    </div>
+
+    <div id="rowMain" class="row">
+      <div class="left"><div class="group" id="grpLeft"></div></div>
+      <div class="center"><div class="group" id="grpCenter"></div></div>
+      <div class="right"><div class="group" id="grpRight"></div></div>
+    </div>
+  </div>
+
+  <div id="adSkipWrap" class="adShadow"><span class="txt" id="adSkipTxt">Reklama (1 z 2)</span><div class="group" id="grpAdSkip"></div><div class="ring" id="adRing2"><svg viewBox="0 0 78 78"><circle class="bg" cx="39" cy="39" r="35"/><circle class="fgc" cx="39" cy="39" r="35" stroke-dasharray="219.9" stroke-dashoffset="0"/></svg><span id="adRingTxt2">20s</span></div></div>
+
+  <div id="epg"><div id="epgTrack"></div></div>
+
+  <div id="panel">
+    <div class="pSec" data-sec="subs"><h3>Titulky</h3></div>
+    <div class="pSec" data-sec="audio"><h3>Zvuk</h3></div>
+  </div>
+
+  <div id="toast"></div>
+</div>
+</div>
+
+<aside id="side">
+  <h1>Player – živá ukázka</h1>
+  <div class="sub">Prototyp podle Figmy „player – vibe app" nad skutečným videem. Klikni do obrazu a ovládej klávesami jako dálkovým.</div>
+
+  <h2>Ovládání</h2>
+  <div class="keys">
+    <div><span>Šipky</span><span><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd></span></div>
+    <div><span>OK</span><span><kbd>Enter</kbd></span></div>
+    <div><span>Zpět / skrýt UI</span><span><kbd>Esc</kbd> <kbd>Backspace</kbd></span></div>
+    <div><span>Play / Pauza</span><span><kbd>Space</kbd></span></div>
+    <div><span>Nápověda (kanály)</span><span><kbd>↑</kbd> při skrytém UI</span></div>
+  </div>
+
+  <h2>Zdroj videa</h2>
+  <div id="sources"></div>
+  <label class="tog"><span>Zvuk zapnutý</span><input type="checkbox" id="tSound"></label>
+
+  <h2>Animace fokusu tlačítek</h2>
+  <div id="anims"></div>
+
+  <h2>Nastavení kanálu</h2>
+  <label class="tog"><span>Kanál umožňuje nahrávání</span><input type="checkbox" id="tRecordable" checked></label>
+  <label class="tog"><span>Sportovní statistiky</span><input type="checkbox" id="tSport" checked></label>
+  <label class="tog"><span>Lze měnit titulky / zvuk</span><input type="checkbox" id="tLang" checked></label>
+  <label class="tog"><span>Balíček přeskakování reklam</span><input type="checkbox" id="tPackage"></label>
+  <label class="tog"><span>Ad-blocker: „Přeskočit" v hlavičce</span><input type="checkbox" id="tSkipTop" checked></label>
+  <div class="hint">Předchozí ↔ Od začátku se přepíná na 10. sekundě (START_OVER_SECONDS). U živého streamu vznikne timeshift pauzou nebo přetočením zpět; „Přehrát živě" vrátí na živý okraj.</div>
+
+  <h2>Reklamy</h2>
+  <button data-ad="client-nonskip">1. Klientská · nepřeskočitelná<small>běžný divák – reálné spoty, jen Pauza</small></button>
+  <button data-ad="client-skip">2. Balíček · odpočet → Přeskočit</button>
+  <button data-ad="client-skipnow">2.3 Balíček · Přeskočit okamžitě</button>
+  <button data-ad="server">1.5 Serverová · bloky na ose<small>blokované přetáčení v bloku</small></button>
+  <button data-ad="stop">Ukončit reklamu / vyčistit osu</button>
+
+  <h2>Stav</h2>
+  <div id="status"></div>
+  <div class="hint">Veřejné testovací streamy třetích stran – mohou být pomalé nebo občas nedostupné. Tlačítka odpovídají „Stavy tlačítek playeru" ve Figmě.</div>
+</aside>
+</div>
+
+<script>
+/* ---------------- icons ---------------- */
+const I = {
+  prev:'<svg viewBox="0 0 44 44" fill="none"><g transform="translate(7.36,5)"><g> <path d="M11.4232 20.3783C9.13568 18.7066 9.13568 15.2927 11.4232 13.621L22.2462 5.71188C25.011 3.69141 28.8998 5.66608 28.8998 9.0905V24.9088C28.8998 28.3332 25.011 30.3079 22.2462 28.2874L11.4232 20.3783Z" fill="currentColor"/> <path d="M3.4 32.3V1.7C3.4 0.761117 2.63889 1.78814e-07 1.7 1.78814e-07C0.761117 1.78814e-07 1.78814e-07 0.761116 1.78814e-07 1.7V32.3C1.78814e-07 33.2389 0.761117 34 1.7 34C2.63889 34 3.4 33.2389 3.4 32.3Z" fill="currentColor"/> </g></g></svg>',
+  restart:'<svg viewBox="0 0 44 44" fill="none"><g transform="translate(3,3)"><g> <path d="M4.75 3.16667V12.6667H14.25" stroke="currentColor" stroke-width="3.16667" stroke-linecap="round" stroke-linejoin="round"/> <path d="M4.75 20.5833C5.0862 23.7594 6.47962 26.7304 8.70664 29.0197C10.9337 31.309 13.8652 32.7838 17.0308 33.2074C20.1964 33.631 23.4125 32.9789 26.1631 31.3557C28.9137 29.7325 31.0392 27.2324 32.1987 24.2565C33.3581 21.2805 33.4842 18.0014 32.5568 14.9452C31.6293 11.889 29.7021 9.23301 27.0843 7.40336C24.4665 5.57371 21.31 4.67651 18.1212 4.85573C14.9324 5.03495 11.8963 6.28021 9.5 8.39167L4.75 12.6667" stroke="currentColor" stroke-width="3.16667" stroke-linecap="round" stroke-linejoin="round"/> </g></g></svg>',
+  play:'<svg viewBox="0 0 44 44" fill="none"><g><g> <path d="M16.8278 39.6642C13.575 42.0412 9 39.718 9 35.6893V8.31037C9 4.28165 13.575 1.95852 16.8278 4.33553L35.5607 18.025C38.2519 19.9916 38.2519 24.0081 35.5607 25.9747L16.8278 39.6642Z" fill="currentColor"/> </g></g></svg>',
+  pause:'<svg viewBox="0 0 44 44" fill="none"><rect x="9" y="3" width="9" height="38" rx="4" fill="currentColor"/><rect x="26" y="3" width="9" height="38" rx="4" fill="currentColor"/></svg>',
+  next:'<svg viewBox="0 0 44 44" fill="none"><g transform="translate(7.47,5)"><g> <path d="M6.65991 28.9555C3.92484 31.027 0 29.0762 0 25.6451V9.13288C0 5.70186 3.92484 3.75099 6.65992 5.82253L17.5606 14.0787C19.7545 15.7403 19.7545 19.0377 17.5606 20.6994L6.65991 28.9555Z" fill="currentColor"/> <path d="M28.6795 32.0534V1.68702C28.6795 0.755306 27.9242 0 26.9925 0C26.0608 0 25.3055 0.755303 25.3055 1.68702V32.0534C25.3055 32.9851 26.0608 33.7404 26.9925 33.7404C27.9242 33.7404 28.6795 32.9851 28.6795 32.0534Z" fill="currentColor"/> </g></g></svg>',
+  rec:'<svg viewBox="0 0 44 44" fill="none"><g transform="translate(1.83,1.83)"><g> <path d="M13.7249 4.61458C16.8007 3.34057 20.1853 3.00711 23.4505 3.65657C26.7159 4.30609 29.7155 5.90981 32.0697 8.26399C34.4238 10.6181 36.0266 13.6179 36.6761 16.8831C37.3255 20.1484 36.9931 23.5329 35.7191 26.6087C34.445 29.6846 32.2871 32.3137 29.5189 34.1634C26.7507 36.013 23.4956 37.0003 20.1663 37.0003C17.956 37.0003 15.7671 36.5649 13.7249 35.7191C11.6827 34.8731 9.82708 33.6327 8.264 32.0697C5.10713 28.9128 3.33333 24.6308 3.33333 20.1663C3.3334 16.8372 4.3207 13.5829 6.17025 10.8148C8.01992 8.04654 10.649 5.88865 13.7249 4.61458Z" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/> <path d="M20.3133 27.4817C24.4343 27.4817 27.775 24.141 27.775 20.02C27.775 15.899 24.4343 12.5583 20.3133 12.5583C16.1924 12.5583 12.8517 15.899 12.8517 20.02C12.8517 24.141 16.1924 27.4817 20.3133 27.4817Z" fill="currentColor"/> </g></g></svg>',
+  recOff:'<svg viewBox="0 0 44 44" fill="none"><g transform="translate(3.67,3.67)"><g> <path d="M3.465 25.41C2.40167 23.2283 1.83333 20.79 1.83333 18.315C1.83333 15.0517 2.805 11.8617 4.62 9.14833C6.41667 6.435 9.00167 4.32667 12.0083 3.08C15.0333 1.83333 18.3517 1.50333 21.56 2.145C22.8983 2.40167 24.2183 2.84167 25.4283 3.44667" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/> <path d="M33.2017 11.2383C33.8067 12.4483 34.2467 13.7683 34.5217 15.1067C35.145 18.2967 34.815 21.615 33.5683 24.64C32.3217 27.6467 30.2133 30.2317 27.5 32.0467C24.7867 33.8617 21.5967 34.815 18.3333 34.815C16.17 34.815 14.025 34.3933 12.0083 33.5683C11.7333 33.4583 11.4767 33.3483 11.22 33.2017" stroke="currentColor" stroke-width="3.66667" stroke-linecap="round" stroke-linejoin="round"/> <path d="M20.4967 10.9817L11.2933 20.1667C11.11 19.525 11.0183 18.865 11.0183 18.1683C11.0183 14.0617 14.355 10.7067 18.48 10.7067C19.1767 10.7067 19.855 10.7983 20.4967 10.9817Z" fill="currentColor"/> <path d="M25.9417 18.1683C25.9417 22.2933 22.605 25.63 18.48 25.63C17.7833 25.63 17.105 25.5383 16.4817 25.355L25.6667 16.17C25.85 16.8117 25.9417 17.4717 25.9417 18.1683Z" fill="currentColor"/> <path d="M2.32833 34.32L34.32 2.32833" stroke="currentColor" stroke-width="3.66667" stroke-miterlimit="10" stroke-linecap="round"/> </g></g></svg>',
+  stats:'<svg viewBox="0 0 44 44" fill="none"><g><g> <g> </g> <path d="M10.6667 13.5C11.4181 13.5 12.1388 13.7985 12.6701 14.3299C13.2015 14.8612 13.5 15.5819 13.5 16.3333V36.1667C13.5 36.9181 13.2015 37.6388 12.6701 38.1701C12.1388 38.7015 11.4181 39 10.6667 39H7.83333C7.08189 39 6.36122 38.7015 5.82987 38.1701C5.29851 37.6388 5 36.9181 5 36.1667V16.3333C5 15.5819 5.29851 14.8612 5.82987 14.3299C6.36122 13.7985 7.08189 13.5 7.83333 13.5H10.6667ZM23.4167 5C24.1681 5 24.8888 5.29851 25.4201 5.82987C25.9515 6.36122 26.25 7.08189 26.25 7.83333V36.1667C26.25 36.9181 25.9515 37.6388 25.4201 38.1701C24.8888 38.7015 24.1681 39 23.4167 39H20.5833C19.8319 39 19.1112 38.7015 18.5799 38.1701C18.0485 37.6388 17.75 36.9181 17.75 36.1667V7.83333C17.75 7.08189 18.0485 6.36122 18.5799 5.82987C19.1112 5.29851 19.8319 5 20.5833 5H23.4167ZM36.1667 22C36.9181 22 37.6388 22.2985 38.1701 22.8299C38.7015 23.3612 39 24.0819 39 24.8333V36.1667C39 36.9181 38.7015 37.6388 38.1701 38.1701C37.6388 38.7015 36.9181 39 36.1667 39H33.3333C32.5819 39 31.8612 38.7015 31.3299 38.1701C30.7985 37.6388 30.5 36.9181 30.5 36.1667V24.8333C30.5 24.0819 30.7985 23.3612 31.3299 22.8299C31.8612 22.2985 32.5819 22 33.3333 22H36.1667Z" fill="currentColor"/> </g></g></svg>',
+  subs:'<svg viewBox="0 0 44 44" fill="none"><g><g> <path d="M38.5 21.0833C38.5063 23.5031 37.941 25.8901 36.85 28.05C35.5565 30.6382 33.5679 32.8152 31.107 34.337C28.6461 35.8589 25.8101 36.6655 22.9167 36.6667C20.4969 36.673 18.1099 36.1076 15.95 35.0167L5.5 38.5L8.98333 28.05C7.89237 25.8901 7.32702 23.5031 7.33333 21.0833C7.33445 18.1899 8.14112 15.3539 9.66299 12.893C11.1848 10.4321 13.3618 8.44354 15.95 7.15C18.1099 6.05904 20.4969 5.49369 22.9167 5.5H23.8333C27.6546 5.71082 31.2639 7.32373 33.9701 10.0299C36.6763 12.7361 38.2892 16.3454 38.5 20.1667V21.0833Z" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/> <path d="M28.4167 21.0833H17.4167" stroke="currentColor" stroke-width="2.43833" stroke-linecap="round" stroke-linejoin="round"/> <path d="M28.4167 16.5H17.4167" stroke="currentColor" stroke-width="2.43833" stroke-linecap="round" stroke-linejoin="round"/> <path d="M24.75 25.6667H17.4167" stroke="currentColor" stroke-width="2.43833" stroke-linecap="round" stroke-linejoin="round"/> </g></g></svg>',
+  audio:'<svg viewBox="0 0 44 44" fill="none"><g><g> <path d="M3.66667 18.3333V23.8333" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/> <path d="M11 11V31.1667" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/> <path d="M18.3333 5.5V38.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/> <path d="M25.6667 14.6667V27.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/> <path d="M33 9.16667V33" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/> <path d="M40.3333 18.3333V23.8333" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/> </g></g></svg>',
+  skip:'<svg viewBox="0 0 44 44" fill="none"><g transform="translate(5.62,3.18)"><g> <path d="M6.41507 33.5225C3.78055 35.5178 0 33.6387 0 30.3338V8.92636C0 5.62148 3.78055 3.74233 6.41507 5.73771L20.5473 16.4414C22.6606 18.042 22.6606 21.2182 20.5473 22.8187L6.41507 33.5225Z" fill="currentColor"/> <path d="M32.375 36.1838V1.90441C32.375 0.852634 31.5224 0 30.4706 0C29.4188 0 28.5662 0.852631 28.5662 1.90441V36.1838C28.5662 37.2356 29.4188 38.0882 30.4706 38.0882C31.5224 38.0882 32.375 37.2356 32.375 36.1838Z" fill="currentColor"/> </g></g></svg>',
+  check:'<svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>'
+};
+
+const $=s=>document.querySelector(s);
+const stage=$('#stage'), videoLayer=$('#videoLayer'), vid=$('#vid'), thumbVid=$('#thumbVid');
+
+/* ---------------- sources (public test streams) ---------------- */
+const SRC = {
+  live1:{name:'Red Bull TV (HLS · živě)',sub:'rbmn-live.akamaized.net · reálný živý kanál, DVR okno',url:'https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8',live:true,channel:'12 NOVA',title:'Předpověď počasí, Sportovní zprávy, Události v regionech'},
+  live2:{name:'Unified Streaming live (HLS · SCTE-35)',sub:'demo.unified-streaming.com · živý stream s ad markery',url:'https://demo.unified-streaming.com/k8s/live/stable/scte35.isml/.m3u8',live:true,channel:'4 ČT sport',title:'Fotbal: Liga mistrů – přímý přenos'},
+  hls:{name:'Big Buck Bunny (HLS · VOD)',sub:'test-streams.mux.dev · 10 min',url:'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',live:false,channel:'ARCHIV',title:'Big Buck Bunny (2008)'},
+  tos:{name:'Tears of Steel (HLS · VOD)',sub:'demo.unified-streaming.com · 12 min',url:'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8',live:false,channel:'ARCHIV',title:'Tears of Steel (2012)'},
+  mp4:{name:'Big Buck Bunny (MP4 · archive.org)',sub:'progresivní MP4 · náhled při přetáčení z videa',url:'https://archive.org/download/BigBuckBunny_124/Content/big_buck_bunny_720p_surround.mp4',live:false,channel:'ARCHIV',title:'Big Buck Bunny (2008)'}
+};
+// reklamní spoty = krátká okna z veřejného HLS (Tears of Steel), aby šly přehrát přes hls.js
+const TOS='https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8';
+const ADS=[{url:TOS,start:22,dur:15},{url:TOS,start:412,dur:20}];
+
+/* ---------------- state ---------------- */
+const PROG=2700; // délka simulovaného pořadu u živého vysílání (45 min)
+const S = {
+  srcKey:'live1', live:true,
+  mode:'live', pos:0, dur:PROG, liveEdge:1500, lag:0, playing:false,
+  recordable:true, recorded:false, sport:true, lang:true, pkg:false, skipTop:true,
+  subs:'en', audio:'cs',
+  uiVisible:true, zone:'buttons', idx:0, epgIdx:2, panelSec:'subs', panelIdx:0,
+  seeking:false, seekTarget:null,
+  ad:null, serverBlocks:[], saved:null, wantPlay:true,
+  hideTimer:null, toastTimer:null, helpTimer:null, seekTimer:null
+};
+let hls=null;
+
+/* ---------------- helpers ---------------- */
+const fmt=s=>{s=Math.max(0,Math.round(s||0));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),ss=s%60;return (h?h+':':'')+String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0')};
+const fmtAd=s=>{s=Math.max(0,Math.ceil(s));return s>60?`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`:`${s}s`};
+function toast(t,ms=2400){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(S.toastTimer);S.toastTimer=setTimeout(()=>el.classList.remove('on'),ms)}
+function armHide(){clearTimeout(S.hideTimer);if(!S.uiVisible)return;if(S.ad&&S.ad.paused)return;if(!S.ad&&!S.playing)return;S.hideTimer=setTimeout(()=>hideUI(),5000)}
+function showUI(){S.uiVisible=true;stage.classList.add('uiVisible');$('#helpPill').classList.remove('on');armHide();render()}
+function hideUI(){S.uiVisible=false;S.seeking=false;stage.classList.remove('uiVisible','seeking');showHelp(3000);render()}
+function showHelp(ms=2500){const h=$('#helpPill');h.classList.add('on');clearTimeout(S.helpTimer);S.helpTimer=setTimeout(()=>h.classList.remove('on'),ms)}
+function inServerBlock(p=S.pos){return S.serverBlocks.find(b=>p>=b[0]&&p<b[1])}
+function liveEdgeTime(){ if(hls&&hls.liveSyncPosition!=null)return hls.liveSyncPosition; const sk=vid.seekable; if(sk&&sk.length)return sk.end(sk.length-1); return isFinite(vid.duration)?vid.duration:vid.currentTime }
+
+/* ---------------- video engine ---------------- */
+function attach(url,onReady,startPos){
+  if(hls){hls.destroy();hls=null}
+  vid.classList.remove('ready');vid.removeAttribute('src');vid.load();
+  const isHls=/\.m3u8/.test(url);
+  if(isHls&&window.Hls&&Hls.isSupported()){
+    hls=new Hls({lowLatencyMode:false,backBufferLength:600,startPosition:startPos!=null?startPos:-1});
+    hls.loadSource(url);hls.attachMedia(vid);
+    hls.on(Hls.Events.MANIFEST_PARSED,()=>{vid.play().catch(()=>{});onReady&&onReady()});
+    hls.on(Hls.Events.ERROR,(e,d)=>{if(d.fatal){toast('Stream nejde načíst: '+d.details);stage.classList.remove('buffering')}});
+  } else { vid.src=url; vid.addEventListener('loadedmetadata',()=>{if(startPos!=null)vid.currentTime=startPos;onReady&&onReady()},{once:true}); vid.play().catch(()=>{}) }
+}
+function loadSource(key){
+  const s=SRC[key]; S.wantPlay=true; S.srcKey=key; S.live=s.live; S.serverBlocks=[]; S.recorded=false;
+  $('#channel').textContent=s.channel; $('#title').textContent=s.title;
+  S.mode=s.live?'live':'archive'; S.liveEdge=1500; S.dur=s.live?PROG:0; S.pos=s.live?S.liveEdge:0;
+  stage.classList.add('buffering');
+  attach(s.url,()=>{ if(!s.live){S.dur=vid.duration||0} });
+  // náhled při přetáčení jen u progresivního MP4
+  thumbVid.style.display='none'; thumbVid.removeAttribute('src');
+  if(/\.mp4$/.test(s.url)){thumbVid.src=s.url;thumbVid.style.display='block'}
+  S.zone='buttons';showUI();setTimeout(()=>{S.idx=Math.max(0,flat.findIndex(b=>b.id==='play'));render()},0);
+  document.querySelectorAll('#sources button').forEach(b=>b.classList.toggle('act',b.dataset.src===key));
+}
+function syncFromVideo(){
+  if(S.ad){ const st=S.ad.list[S.ad.i].start||0; S.ad.t=Math.max(0,(vid.currentTime||0)-st); S.ad.paused=vid.paused; return }
+  S.playing=!vid.paused&&!vid.ended;
+  if(S.live){
+    const edge=liveEdgeTime(); S.lag=Math.max(0,edge-(vid.currentTime||0));
+    if(!isFinite(S.lag))S.lag=0;
+    S.pos=Math.max(0,S.liveEdge-S.lag);
+    S.mode=S.lag>4?'timeshift':'live';
+  } else {
+    S.dur=vid.duration&&isFinite(vid.duration)?vid.duration:S.dur;
+    S.pos=vid.currentTime||0; S.mode='archive';
+  }
+}
+function setVideoPlaying(p){ S.wantPlay=p; if(p)vid.play().catch(()=>toast('Prohlížeč blokuje přehrávání – klikni do obrazu')); else vid.pause() }
+function seekVideoTo(p){
+  if(S.live){ const edge=liveEdgeTime(); const target=edge-(S.liveEdge-p); const sk=vid.seekable; const min=sk&&sk.length?sk.start(0):0; vid.currentTime=Math.max(min,Math.min(edge,target)) }
+  else vid.currentTime=Math.max(0,Math.min(S.dur||0,p));
+}
+function goLive(){ S.wantPlay=true; if(hls&&hls.liveSyncPosition!=null)vid.currentTime=hls.liveSyncPosition; else vid.currentTime=liveEdgeTime(); vid.play().catch(()=>{}) }
+vid.addEventListener('playing',()=>{vid.classList.add('ready');stage.classList.remove('buffering');syncFromVideo();render()});
+vid.addEventListener('waiting',()=>stage.classList.add('buffering'));
+vid.addEventListener('error',()=>{stage.classList.remove('buffering');toast('Video se nepodařilo načíst (chyba '+(vid.error&&vid.error.code)+')')});
+vid.addEventListener('canplay',()=>{stage.classList.remove('buffering');if(S.wantPlay&&vid.paused&&!document.hidden)vid.play().catch(()=>{})});
+// Chromium pozastaví ztlumené video ve skryté záložce – po návratu na stránku přehrávání obnovíme
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.wantPlay&&vid.paused)vid.play().catch(()=>{})});
+vid.addEventListener('pause',()=>{syncFromVideo();render()});
+vid.addEventListener('play',()=>{syncFromVideo();render();armHide()});
+vid.addEventListener('ended',()=>{ if(S.ad)nextAd(); else {S.playing=false;showUI()} });
+vid.addEventListener('timeupdate',()=>{ if(S.ad)syncFromVideo(); if(S.ad&&S.ad.t>=S.ad.list[S.ad.i].dur){nextAd();return} if(S.ad&&S.ad.skippable&&S.ad.t>=S.ad.skipAfter&&!S.ad.skipShown){S.ad.skipShown=true;S.zone='adskip';showUI()} });
+
+/* ---------------- button model (Stavy tlačítek playeru) ---------------- */
+function buttons(){
+  if(S.ad){
+    return {left:[],center:[
+      {id:'aprev',icon:I.prev,label:'Předchozí',disabled:true},
+      {id:'apause',icon:S.ad.paused?I.play:I.pause,label:S.ad.paused?'Přehrát reklamu':'Pozastavit reklamu'},
+      {id:'anext',icon:I.next,label:'Další',disabled:true}
+    ],right:[],skip:[]};
+  }
+  const left=[];
+  if(S.recordable) left.push(S.recorded?{id:'rec',icon:I.recOff,label:'Odebrat nahrávku',cls:'rec-on'}:{id:'rec',icon:I.rec,label:'Nahrát'});
+  if(S.lang){
+    left.push({id:'subs',icon:I.subs,label:S.subs==='off'?'Titulky':'Titulky: '+S.subs.toUpperCase()});
+    left.push({id:'audio',icon:I.audio,label:'Zvuk: '+(S.audio==='ad'?'CZ · AD':S.audio==='orig'?'EN':S.audio.toUpperCase())});
+  }
+  const prev=S.pos<10?{id:'prev',icon:I.prev,label:'Předchozí'}:{id:'prev',icon:I.restart,label:'Od začátku'};
+  const play={id:'play',icon:S.playing?I.pause:I.play,label:S.playing?'Pozastavit':'Přehrát'};
+  let next;
+  if(S.mode==='timeshift') next={id:'next',icon:I.next,label:'Přehrát živě'};
+  else if(S.mode==='archive') next={id:'next',icon:I.next,label:'Další'};
+  else next={id:'next',icon:I.next,label:'Další',disabled:true};
+  const right=S.sport?[{id:'sport',icon:I.stats,label:'Sportovní statistiky',labeled:true}]:[];
+  const skip=(S.skipTop&&S.pkg)?[{id:'skipTop',icon:I.skip,label:'Přeskočit',labeled:true}]:[];
+  return {left,center:[prev,play,next],right,skip};
+}
+let flat=[];
+
+/* keyed render: prvky se nepřestavují, jen aktualizují → CSS přechody běží */
+function renderGroup(el,list,zoneName,focusedId){
+  const sig=list.map(b=>b.id).join(',');
+  if(el.dataset.sig!==sig){
+    el.innerHTML='';el.dataset.sig=sig;
+    list.forEach(b=>{const d=document.createElement('div');d.className='btn';d.dataset.id=b.id;d.dataset.zone=zoneName;d.innerHTML=b.icon+`<span class="lblw"><span class="lbl">${b.label}</span></span>`;d.dataset.icon=b.icon;
+      d.onclick=e=>{e.stopPropagation();focusButton(zoneName,b.id);activate()};el.appendChild(d)});
+  }
+  list.forEach(b=>{
+    const d=el.querySelector(`.btn[data-id="${b.id}"]`);if(!d)return;
+    if(d.dataset.icon!==b.icon){d.querySelector('svg').outerHTML=b.icon;d.dataset.icon=b.icon;d.classList.remove('swap');void d.offsetWidth;d.classList.add('swap')}
+    const l=d.querySelector('.lbl');if(l.textContent!==b.label)l.textContent=b.label;
+    d.classList.toggle('disabled',!!b.disabled);d.classList.toggle('rec-on',b.cls==='rec-on');d.classList.toggle('labeled',!!b.labeled);
+    d.classList.toggle('focus',b.id===focusedId);
+  });
+}
+function focusButton(zone,id){S.zone=zone;const list=zone==='skip'?buttons().skip:flat;const i=list.findIndex(b=>b.id===id);if(i>=0)S.idx=i;showUI()}
+function pressFx(){const el=document.querySelector('.btn.focus');if(!el)return;el.classList.remove('pressed');void el.offsetWidth;el.classList.add('pressed')}
+
+/* ---------------- render ---------------- */
+function render(){
+  const B=buttons();
+  flat=[...B.left,...B.center,...B.right];
+  if(S.idx>=flat.length)S.idx=Math.max(0,flat.length-1);
+  const fid=S.zone==='buttons'&&flat[S.idx]?flat[S.idx].id:null;
+  renderGroup($('#grpLeft'),B.left,'buttons',fid);
+  renderGroup($('#grpCenter'),B.center,'buttons',fid);
+  renderGroup($('#grpRight'),B.right,'buttons',fid);
+  renderGroup($('#grpSkip'),B.skip,'skip',S.zone==='skip'?'skipTop':null);
+  $('#rowMain').classList.toggle('hasSport',B.right.length>0);
+  $('#timeline').classList.toggle('focus',S.zone==='timeline');
+  stage.classList.toggle('seeking',S.seeking&&S.zone==='timeline');
+
+  const track=$('#track');
+  if(S.ad){
+    const cur=S.ad.list[S.ad.i];
+    track.classList.add('ad');
+    $('#tL').textContent=fmt(S.ad.t);$('#tR').textContent=fmt(cur.dur);
+    $('#progress').style.width=(Math.min(1,S.ad.t/cur.dur)*100)+'%';
+    $('#buffer').style.width='0';$('#adblocks').innerHTML='';$('#startMark').style.display='none';$('#seeker').style.display='none';
+    const remain=cur.dur-S.ad.t;
+    if(S.ad.skippable){
+      stage.classList.remove('adInfoOn');stage.classList.add('adSkipOn');
+      const rem=S.ad.skipAfter-S.ad.t;
+      const g=$('#grpAdSkip');
+      if(rem<=0){
+        if(g.dataset.sig!=='adskip'){g.dataset.sig='adskip';g.innerHTML='';const d=document.createElement('div');d.className='btn labeled';d.dataset.id='adskip';d.innerHTML=I.skip+'<span class="lblw"><span class="lbl">Přeskočit</span></span>';d.onclick=e=>{e.stopPropagation();S.zone='adskip';activate()};g.appendChild(d)}
+        g.style.display='';g.querySelector('.btn').classList.toggle('focus',S.zone==='adskip');
+        $('#adSkipTxt').textContent=`Reklama (${S.ad.i+1} z ${S.ad.list.length})`;
+        setRing($('#adRing2'),$('#adRingTxt2'),remain/cur.dur,fmtAd(remain));
+      } else {
+        g.style.display='none';g.dataset.sig='';
+        $('#adSkipTxt').textContent='Přeskočit reklamu za';
+        setRing($('#adRing2'),$('#adRingTxt2'),rem/S.ad.skipAfter,fmtAd(rem));
+      }
+    } else {
+      stage.classList.remove('adSkipOn');stage.classList.add('adInfoOn');
+      $('#adTxt').textContent=`Reklama (${S.ad.i+1} z ${S.ad.list.length})`;
+      setRing($('#adRing'),$('#adRingTxt'),remain/cur.dur,fmtAd(remain));
+    }
+  } else {
+    track.classList.remove('ad');stage.classList.remove('adSkipOn');
+    const dur=S.dur||1;
+    const shownPos=S.seeking&&S.seekTarget!=null?S.seekTarget:S.pos;
+    $('#tL').textContent=fmt(shownPos);$('#tR').textContent=fmt(dur);
+    $('#progress').style.width=(shownPos/dur*100)+'%';
+    let buf=0; if(S.live)buf=S.liveEdge/dur*100; else if(vid.buffered&&vid.buffered.length)buf=vid.buffered.end(vid.buffered.length-1)/dur*100;
+    $('#buffer').style.width=Math.min(100,buf)+'%';
+    $('#startMark').style.display=S.live?'':'none';
+    $('#seeker').style.display='';$('#seeker').style.left=(shownPos/dur*100)+'%';
+    $('#adblocks').innerHTML=S.serverBlocks.map(b=>`<div class="adblock" style="left:${b[0]/dur*100}%;width:${(b[1]-b[0])/dur*100}%"></div>`).join('');
+    const blk=inServerBlock();
+    if(blk){stage.classList.add('adInfoOn');$('#adTxt').textContent='Běží reklama';const rem=blk[1]-S.pos;setRing($('#adRing'),$('#adRingTxt'),rem/(blk[1]-blk[0]),fmtAd(rem))}
+    else stage.classList.remove('adInfoOn');
+    $('#seekThumb').style.left=(shownPos/dur*100)+'%';$('#seekTm').textContent=fmt(shownPos);
+  }
+  videoLayer.className=S.ad?'ad':'content';
+
+  document.querySelectorAll('.card').forEach((c,i)=>c.classList.toggle('focus',S.zone==='epg'&&i===S.epgIdx));
+  $('#epgTrack').style.left=(S.zone==='epg'?(960-250-S.epgIdx*516):-838)+'px';
+  document.querySelectorAll('.pItem').forEach(p=>{p.classList.toggle('sel',(p.dataset.sec==='subs'?S.subs:S.audio)===p.dataset.val);p.classList.toggle('focus',stage.classList.contains('panelOpen')&&p.dataset.sec===S.panelSec&&+p.dataset.i===S.panelIdx)});
+
+  const f=S.zone==='buttons'?(flat[S.idx]||{}).label:S.zone;
+  $('#status').textContent=`zdroj: ${SRC[S.srcKey].name}\nmode: ${S.mode}${S.live?`  lag za živě: ${Math.round(S.lag)} s`:''}\npos: ${fmt(S.pos)} / ${fmt(S.dur)}\nvideo: ${vid.paused?'paused':'playing'}  t=${(vid.currentTime||0).toFixed(1)}  ready=${vid.readyState}\nui: ${S.uiVisible?'visible':'hidden'}  focus: ${S.zone} → ${f||'-'}\nad: ${S.ad?`klientská #${S.ad.i+1} t=${S.ad.t.toFixed(0)}s ${S.ad.skippable?'skippable':'non-skip'}${S.ad.paused?' PAUSED':''}`:(inServerBlock()?'serverový blok':'žádná')}\nrec: ${S.recorded}  subs: ${S.subs}  audio: ${S.audio}`;
+}
+function setRing(ring,txt,frac,label){const c=ring.querySelector('.fgc');c.style.strokeDashoffset=(219.9*(1-Math.max(0,Math.min(1,frac)))).toFixed(1);txt.textContent=label}
+
+/* ---------------- EPG & panel ---------------- */
+const EPG=[
+  ['Lorem ipsum dolor sit amet consectetur. Neque nisi vulputate.','07:30 – 08:00'],
+  ['Výročie narodenia Andreja Sládkoviča (Úplný životopis básnika)','08:00 – 08:45'],
+  ['Předpověď počasí, Sportovní zprávy, Události v regionech','08:45 – 09:30',true],
+  ['Lorem ipsum dolor sit amet consectetur. Neque nisi vulputate.','09:30 – 10:15'],
+  ['Lorem ipsum dolor sit amet consectetur. Neque nisi vulputate.','10:15 – 11:00'],
+  ['Lorem ipsum dolor sit amet consectetur. Neque nisi vulputate.','11:00 – 12:00'],
+  ['Lorem ipsum dolor sit amet consectetur. Neque nisi vulputate.','12:00 – 12:30']
+];
+$('#epgTrack').innerHTML=EPG.map((e,i)=>`<div class="card${e[2]?' live':''}" data-i="${i}"><div class="ct">${e[0]}</div><div class="ci"></div><div class="cm">${e[2]?'<b>● Právě běží</b> · ':''}${e[1]}</div></div>`).join('');
+document.querySelectorAll('.card').forEach(c=>c.onclick=e=>{e.stopPropagation();S.zone='epg';S.epgIdx=+c.dataset.i;showUI();activate()});
+
+const PANEL={subs:[['off','Vypnuto'],['cs','Čeština'],['en','Angličtina']],audio:[['cs','Čeština'],['orig','Original'],['ad','Zvukový popis']]};
+let _pi=0;
+for(const sec in PANEL){const secEl=document.querySelector(`.pSec[data-sec="${sec}"]`);secEl.querySelector('h3').style.setProperty('--i',_pi++);const box=document.createElement('div');box.className='pItems';secEl.appendChild(box);PANEL[sec].forEach((it,i)=>{const d=document.createElement('div');d.className='pItem';d.dataset.sec=sec;d.dataset.val=it[0];d.dataset.i=i;d.style.setProperty('--i',_pi++);d.innerHTML='<span class="chk">'+I.check+'</span>'+it[1];d.onclick=e=>{e.stopPropagation();S.panelSec=sec;S.panelIdx=i;activate()};box.appendChild(d)})}
+function openPanel(sec){S.panelSec=sec;S.panelIdx=PANEL[sec].findIndex(x=>x[0]===(sec==='subs'?S.subs:S.audio));stage.classList.add('panelOpen');clearTimeout(S.hideTimer);render()}
+function closePanel(){stage.classList.remove('panelOpen');S.zone='buttons';showUI()}
+
+/* ---------------- actions ---------------- */
+function activate(){
+  if(stage.classList.contains('panelOpen')){
+    const it=PANEL[S.panelSec][S.panelIdx];
+    if(S.panelSec==='subs')S.subs=it[0];else S.audio=it[0];
+    render();toast((S.panelSec==='subs'?'Titulky: ':'Zvuk: ')+it[1]);
+    setTimeout(closePanel,450);return;
+  }
+  if(!S.uiVisible){showUI();return}
+  armHide();
+  if(S.zone==='adskip'){adSkip();return}
+  if(S.zone==='epg'){const e=EPG[S.epgIdx];toast(e[2]?'Tohle právě běží':'Spustit z EPG: '+e[0].slice(0,40)+'…');return}
+  if(S.zone==='timeline'){commitSeek();return}
+  if(S.zone==='skip'){pressFx();toast('Balíček: přeskočen reklamní blok ve vysílání – skok na konec TV breaku');seekVideoTo(S.pos+180);return}
+  const b=S.zone==='buttons'?flat[S.idx]:null;if(!b)return;
+  if(b.disabled){toast(b.id==='next'?'Neexistuje následující pořad — na živém vysílání běžný stav':'Během reklamy je aktivní jen Pauza');return}
+  pressFx();
+  switch(b.id){
+    case 'apause': if(vid.paused){S.wantPlay=true;vid.play();armHide()} else {S.wantPlay=false;vid.pause();clearTimeout(S.hideTimer);toast('Reklama pozastavena — UI se nesmí automaticky skrýt')} S.ad.paused=vid.paused; break;
+    case 'play': if(vid.paused){setVideoPlaying(true)} else {setVideoPlaying(false);clearTimeout(S.hideTimer);if(S.live&&S.mode==='live')toast('Pauza na živém vysílání → timeshift')} break;
+    case 'prev': if(S.pos<10){toast('Předchozí pořad z EPG (jen do 10. s)')} else {toast('Od začátku — restart aktuálního pořadu')} seekVideoTo(0); break;
+    case 'next': if(S.mode==='timeshift'){goLive();toast('Přehrát živě — návrat na živé vysílání')} else {toast('Další pořad z EPG');seekVideoTo(0)} break;
+    case 'rec': S.recorded=!S.recorded; toast(S.recorded?'Pořad nahrán':'Nahrávka odebrána'); break;
+    case 'subs': openPanel('subs'); return;
+    case 'audio': openPanel('audio'); return;
+    case 'sport': toast('Sportovní statistiky — otevře panel se statistikami (mimo tento prototyp)'); break;
+  }
+  syncFromVideo();render();
+}
+
+/* ---------------- seeking ---------------- */
+function seek(d){
+  if(S.ad){toast('Během reklamy nelze přetáčet');return}
+  if(inServerBlock()){toast('Během reklamy nelze přetáčet');return}
+  const base=S.seekTarget!=null?S.seekTarget:S.pos;
+  let np=base+d;
+  const after=S.serverBlocks.find(b=>base>=b[1]&&base<b[1]+10);
+  if(d<0&&after)np=after[0]-1;                       // −10 s těsně po bloku: blok se přeskočí, jako by nebyl
+  const target=S.serverBlocks.find(b=>np>=b[0]&&np<b[1]);
+  if(target&&d>0)np=target[1];                        // přetočení do bloku → skok na jeho konec
+  const max=S.live?S.liveEdge:S.dur;
+  if(np>=max){np=max;if(S.live)toast('Jsi na živém vysílání')}
+  if(S.live){const sk=vid.seekable;const dvr=sk&&sk.length?liveEdgeTime()-sk.start(0):0;if(S.liveEdge-np>dvr){np=S.liveEdge-dvr;toast(`DVR okno streamu je jen ${fmt(dvr)}`)}}
+  S.seekTarget=Math.max(0,np);S.seeking=true;
+  if(thumbVid.src&&!S.live){try{thumbVid.currentTime=S.seekTarget}catch(e){}}
+  clearTimeout(S.seekTimer);S.seekTimer=setTimeout(commitSeek,900); // po chvíli bez stisku se přetočí
+  render();
+}
+function commitSeek(){ if(S.seekTarget==null){S.seeking=false;render();return} seekVideoTo(S.seekTarget);S.seekTarget=null;S.seeking=false;syncFromVideo();render() }
+
+/* ---------------- ads ---------------- */
+function startClientAd(kind){
+  if(S.ad)stopAd(false);
+  S.saved={time:vid.currentTime,playing:!vid.paused,live:S.live};
+  S.ad={list:ADS,i:0,t:0,paused:false,skippable:kind!=='client-nonskip',skipAfter:kind==='client-skipnow'?0:5,skipShown:false};
+  if(S.ad.skippable&&S.ad.skipAfter===0)S.ad.skipShown=true;
+  S.wantPlay=true;attach(ADS[0].url,null,ADS[0].start);
+  S.zone=S.ad.skipAfter===0&&S.ad.skippable?'adskip':'buttons';S.idx=1;showUI();
+  toast(kind==='client-nonskip'?'Klientská reklama: divák nemůže přetáčet, zůstává jen Pauza':'Balíček přeskakování: po nepřeskočitelné části se objeví Přeskočit');
+}
+function adSkip(){if(!S.ad)return;pressFx();toast('Reklama přeskočena');nextAd()}
+function nextAd(){
+  S.ad.i++;S.ad.t=0;S.ad.skipShown=S.ad.skippable&&S.ad.skipAfter===0;
+  if(S.ad.i>=S.ad.list.length){stopAd(true);return}
+  const a=S.ad.list[S.ad.i];attach(a.url,null,a.start);S.zone=S.ad.skipShown?'adskip':'buttons';S.idx=1;render();
+}
+function stopAd(back){
+  const had=!!S.ad;S.ad=null;stage.classList.remove('adInfoOn','adSkipOn');$('#grpAdSkip').dataset.sig='';
+  if(had){
+    const s=SRC[S.srcKey];stage.classList.add('buffering');
+    attach(s.url,()=>{ if(S.live)goLive(); else if(S.saved){vid.currentTime=S.saved.time+1} vid.play().catch(()=>{}) });
+    if(back)toast('Reklamy doběhly — skok na konec VAST bloku');
+  }
+  S.zone='buttons';render();S.idx=Math.max(0,flat.findIndex(b=>b.id==='play'));render();armHide();
+}
+function startServerAd(){
+  if(S.ad)stopAd(false);
+  const dur=S.dur||PROG;
+  S.serverBlocks=[[dur*.22,dur*.28],[dur*.55,dur*.58],[dur*.8,dur*.83]].map(b=>[Math.round(b[0]),Math.round(b[1])]);
+  seekVideoTo(S.serverBlocks[0][0]+2);setVideoPlaying(true);
+  S.zone='buttons';showUI();toast('Serverová reklama: osa ukazuje bloky, přetáčení v bloku je blokované');
+}
+
+/* ---------------- clock ---------------- */
+setInterval(()=>{
+  if(S.live&&!S.ad)S.liveEdge=Math.min(PROG,S.liveEdge+1);
+  syncFromVideo();
+  if(S.ad&&S.ad.t>=S.ad.list[S.ad.i].dur){nextAd();return}
+  render();
+},1000);
+
+/* ---------------- keys ---------------- */
+function move(dx,dy){
+  if(stage.classList.contains('panelOpen')){
+    const secs=['subs','audio'];let si=secs.indexOf(S.panelSec);
+    if(dy){let ni=S.panelIdx+dy;if(ni<0){if(si>0){S.panelSec=secs[si-1];S.panelIdx=PANEL[S.panelSec].length-1}}else if(ni>=PANEL[S.panelSec].length){if(si<secs.length-1){S.panelSec=secs[si+1];S.panelIdx=0}}else S.panelIdx=ni}
+    render();return;
+  }
+  if(!S.uiVisible){ if(dy<0)showHelp(); else showUI(); return }
+  armHide();
+  const B=buttons();
+  const zones=['skip','timeline','buttons','epg'].filter(z=>z!=='skip'||B.skip.length);
+  if(S.zone==='adskip'){ if(dy<0){S.zone='buttons';S.idx=1} render();return }
+  if(dy){
+    let zi=zones.indexOf(S.zone);
+    let nz=zones[Math.max(0,Math.min(zones.length-1,zi+dy))];
+    if(S.ad&&nz==='timeline')nz='buttons';
+    if(S.ad&&nz==='epg'&&dy>0&&S.ad.skippable&&S.ad.skipShown){S.zone='adskip';render();return}
+    if(nz!==S.zone){if(S.zone==='timeline')commitSeek();S.zone=nz;if(nz==='buttons')S.idx=Math.min(S.idx,flat.length-1)}
+  } else if(dx){
+    if(S.zone==='buttons'){S.idx=Math.max(0,Math.min(flat.length-1,S.idx+dx))}
+    else if(S.zone==='epg'){S.epgIdx=Math.max(0,Math.min(EPG.length-1,S.epgIdx+dx))}
+    else if(S.zone==='timeline'){seek(dx*10)}
+  }
+  render();
+}
+function back(){
+  if(stage.classList.contains('panelOpen')){closePanel();return}
+  if(S.seeking){S.seekTarget=null;S.seeking=false;clearTimeout(S.seekTimer);render();return}
+  if(S.uiVisible){if(S.ad&&S.ad.paused){toast('Reklama je pozastavená — UI zůstává');return}hideUI();return}
+  toast('Zpět — opustit player (mimo prototyp)');
+}
+document.addEventListener('keydown',e=>{
+  const k=e.key;
+  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter',' ','Escape','Backspace'].includes(k))e.preventDefault();else return;
+  if(k==='ArrowLeft')move(-1,0);else if(k==='ArrowRight')move(1,0);else if(k==='ArrowUp')move(0,-1);else if(k==='ArrowDown')move(0,1);
+  else if(k==='Enter')activate();
+  else if(k===' '){ S.zone='buttons';S.idx=Math.max(0,flat.findIndex(b=>b.id===(S.ad?'apause':'play')));showUI();activate() }
+  else back();
+});
+stage.addEventListener('click',()=>{ if(stage.classList.contains('panelOpen'))return; if(vid.paused&&S.wantPlay){vid.play().catch(()=>{})} S.uiVisible?hideUI():showUI() });
+$('#track').addEventListener('click',e=>{e.stopPropagation();if(S.ad)return;const r=e.currentTarget.getBoundingClientRect();const frac=(e.clientX-r.left)/r.width;S.zone='timeline';const max=S.live?S.liveEdge:S.dur;S.seekTarget=Math.min(max,frac*(S.dur||1));commitSeek();showUI()});
+
+/* ---------------- sidebar ---------------- */
+$('#sources').innerHTML=Object.entries(SRC).map(([k,s])=>`<button data-src="${k}">${s.name}<small>${s.sub}</small></button>`).join('');
+const ANIMS=[['none','Bez animace','popisek i pilulka naskočí okamžitě'],['expand','Rozjezd','šířka roste přesně na text (výchozí)'],['fade','Prolnutí','šířka skokem, prolne se jen popisek'],['slide','Zprava','popisek vyjede zpod ikony'],['spring','Pružina','šířka na konci lehce přepruží'],['pop','Nádech','pilulka se u fokusu nepatrně zvětší']];
+$('#anims').innerHTML=ANIMS.map(a=>`<button data-anim="${a[0]}">${a[1]}<small>${a[2]}</small></button>`).join('');
+function setAnim(k){stage.dataset.anim=k;try{localStorage.setItem('anim',k)}catch(e){}document.querySelectorAll('#anims button').forEach(b=>b.classList.toggle('act',b.dataset.anim===k))}
+document.querySelectorAll('#anims button').forEach(b=>b.onclick=()=>setAnim(b.dataset.anim));
+let _a='expand';try{_a=localStorage.getItem('anim')||'expand'}catch(e){}
+setAnim(_a);
+document.querySelectorAll('#sources button').forEach(b=>b.onclick=()=>{if(S.ad)stopAd(false);loadSource(b.dataset.src)});
+$('#tSound').onchange=e=>{vid.muted=!e.target.checked;if(!vid.muted)vid.play().catch(()=>{})};
+$('#tRecordable').onchange=e=>{S.recordable=e.target.checked;showUI()};
+$('#tSport').onchange=e=>{S.sport=e.target.checked;showUI()};
+$('#tLang').onchange=e=>{S.lang=e.target.checked;showUI()};
+$('#tPackage').onchange=e=>{S.pkg=e.target.checked;showUI()};
+$('#tSkipTop').onchange=e=>{S.skipTop=e.target.checked;showUI()};
+document.querySelectorAll('#side [data-ad]').forEach(b=>b.onclick=()=>{const k=b.dataset.ad;if(k==='stop'){S.serverBlocks=[];if(S.ad)stopAd(false);else render();toast('Reklamy vyčištěny')}else if(k==='server')startServerAd();else startClientAd(k)});
+
+/* ---------------- scaling & boot ---------------- */
+function fit(){const w=$('#stageWrap').clientWidth-32,h=$('#stageWrap').clientHeight-32;stage.style.transform=`scale(${Math.min(w/1920,h/1080)})`}
+window.addEventListener('resize',fit);fit();
+loadSource('live1');
+hideUI(); // podle Figmy: po startu (a po každém zavření UI) se na pár sekund ukáže nápověda pro seznam kanálů
+stage.focus();
+</script>
+</body>
+</html>
