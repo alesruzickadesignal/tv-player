@@ -86,7 +86,8 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
 .btn.rec-on svg{color:var(--err500)}
 .btn.rec-on.focus svg{color:var(--err600)}
 
-/* 1 – bez animace: vše naskočí okamžitě */
+/* 1 – bez animace: fokus se nemění postupně vůbec (pilulka, popisek i barva skokem).
+   Ztmavení pod UI, příchod ovládání a EPG se prolínají dál – to není fokus. */
 /* 2 – rozjezd (výchozí): šířka roste přesně na text, popisek se prolne */
 [data-anim=expand] .btn{transition:background-color .2s ease-out,color .2s ease-out}
 [data-anim=expand] .btn .lblw{transition:grid-template-columns .26s cubic-bezier(.33,1,.68,1),padding-left .26s cubic-bezier(.33,1,.68,1)}
@@ -310,13 +311,13 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
 .spTeam b{font:500 26px Roboto}
 .spNum b{font:500 56px/1 "Fira Sans"}
 .spNum i{font:400 30px/32px "Fira Sans";color:#aeb4c2}
-.spTabs{background:var(--pill);backdrop-filter:blur(8px);padding:4px;height:78px;gap:4px;filter:none;border-radius:50px}
+.spTabs{background:var(--pill);backdrop-filter:blur(8px);padding:4px;height:86px;gap:4px;filter:none;border-radius:50px}
 .spTabRow{gap:4px}
-.spTab{height:70px;padding:0 20px;border-radius:50px;font:500 28px Roboto;color:var(--fg);transition:background-color .2s ease-out,color .2s ease-out}
+.spTab{height:78px;padding:0 24px;border-radius:50px;font:500 28px Roboto;color:var(--fg);transition:background-color .2s ease-out,color .2s ease-out}
 .spTab.active{background:rgba(255,255,255,.14);color:var(--fg);font-weight:500;box-shadow:none}
 .spTab.focus{background:var(--fg);color:var(--ink);font-weight:500}
 .spDiv{width:2px;height:40px;background:rgba(255,255,255,.14);margin:0 6px}
-.spGear{width:70px;height:70px;background:transparent;color:var(--fg);box-shadow:none;border-radius:50px}
+.spGear{width:78px;height:78px;background:transparent;color:var(--fg);box-shadow:none;border-radius:50px}
 .spGear svg{width:40px;height:40px}
 .spGear.active{background:rgba(255,255,255,.14);color:var(--fg)}
 .spGear.focus{background:var(--fg);color:var(--ink)}
@@ -342,7 +343,10 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
 .spBar{background:rgba(255,255,255,.25);height:8px}
 .spBar i{background:var(--blue)}
 .spFocusable.focus .spBar{background:rgba(33,38,51,.15)}
-.spSwitch{flex:none;padding:0 28px;height:70px;border-radius:50px;margin-bottom:4px}
+.spSwitch{flex:none;padding:4px;height:86px;border-radius:50px;margin-bottom:4px;background:var(--pill);backdrop-filter:blur(8px);display:flex}
+.spSwitchIn{flex:1;min-width:0;height:78px;border-radius:50px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;transition:background-color .18s ease-out}
+.spSwitch.focus{background:var(--pill)}
+.spSwitch.focus .spSwitchIn{background:var(--fg)}
 .spSwitch span{font:500 28px Roboto;color:var(--fg)}
 .spFocusable.focus.spSwitch svg{stroke:var(--ink)}
 .spForm{flex:none;gap:12px;padding:0 4px}
@@ -942,7 +946,7 @@ function spBuildContent(){
     c.appendChild(sec);
   } else if(SP.sec==='sestavy'){
     const T=SP.teams[SP.team];
-    const sw=document.createElement('div');sw.className='spCard spSwitch spFocusable';sw.dataset.i=0;sw.innerHTML=`${SPI.chl}<span>${T.n}</span>${SPI.chr}`;sw.onclick=()=>{SP.zone='list';SP.idx=0;spActivate()};c.appendChild(sw);
+    const sw=document.createElement('div');sw.className='spCard spSwitch spFocusable';sw.dataset.i=0;sw.innerHTML=`<div class="spSwitchIn">${SPI.chl}<span>${T.n}</span>${SPI.chr}</div>`;sw.onclick=()=>{SP.zone='list';SP.idx=0;spActivate()};c.appendChild(sw);
     const f=document.createElement('div');f.className='spForm';f.innerHTML=`<em>Rozestavení ${T.form}</em><div class="spPitch"><div class="ln"></div><div class="cc"></div><div class="bx" style="left:-18px"></div><div class="bx" style="right:-18px"></div>${spFormationDots(T.form,T.players.length).map((p,i)=>`<div class="pl" data-p="${i}" style="left:${p[0]}px;top:${p[1]}px"></div>`).join('')}</div>`;c.appendChild(f);
     const sec=document.createElement('div');sec.className='spSec';sec.innerHTML='<div class="spLabel">Sestava</div>';
     T.players.forEach((p,i)=>{const d=document.createElement('div');d.className='spCard spPlayer spFocusable';d.dataset.i=i+1;d.innerHTML=`<div class="spAva"></div><div class="c"><b>${p.n} · ${p.pos}</b><span>Věk: ${p.age} let · Česko · Číslo: ${p.num}</span><span>Odehráno: ${p.min} min · ${p.a} · Karty: ${p.cards}</span></div>`;d.onclick=()=>{SP.zone='list';SP.idx=i+1;spActivate()};sec.appendChild(d)});
