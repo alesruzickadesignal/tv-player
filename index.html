@@ -166,7 +166,7 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
 #helpPill svg{width:30px;height:30px;fill:none;stroke:var(--fg);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
 
 /* side panel (subtitles/audio) — rozměry dle Figmy „sport / panel" 640×1080 */
-#panel{position:absolute;right:0;top:0;width:640px;height:1080px;padding:100px 32px 0;display:flex;flex-direction:column;gap:40px;visibility:hidden;opacity:0;transition:opacity .26s ease-out,visibility 0s .26s;background:linear-gradient(90deg,rgba(12,13,18,0) 0%,#0e1016 25%)}
+#panel{position:absolute;right:0;top:0;width:640px;height:1080px;padding:0 32px;overflow:hidden;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 88px,#000 calc(100% - 120px),transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 88px,#000 calc(100% - 120px),transparent 100%);visibility:hidden;opacity:0;transition:opacity .26s ease-out,visibility 0s .26s;background:linear-gradient(90deg,rgba(12,13,18,0) 0%,#0e1016 25%)}
 #stage.panelOpen #panel{visibility:visible;opacity:1;transition:opacity .26s ease-out,visibility 0s}
 /* Položky nemají vlastní vstupní animaci – panel se prolíná a přijíždí jako celek (#panel).
    Dřívější kaskáda po položkách brzdila reakci fokusu a problikávala. */
@@ -174,10 +174,13 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
 #stage.panelOpen{background:#0e1016}
 #panelBg{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .45s ease-out;background:radial-gradient(ellipse at 20% 80%,rgba(40,20,20,.6),transparent 60%),radial-gradient(ellipse at 20% 10%,rgba(8,40,90,.45),transparent 55%)}
 #stage.panelOpen #panelBg{opacity:1}
+/* obsah panelu roluje pod fokusem drženým uprostřed (translateY přes --pY) */
+#panelScroll{position:relative;display:flex;flex-direction:column;gap:40px;padding:100px 0 140px;transform:translateY(var(--pY,0px));transition:transform .3s cubic-bezier(.2,.8,.2,1);will-change:transform}
+#panelScroll.noanim{transition:none}
 .pSec{display:flex;flex-direction:column;gap:8px;width:576px}
 .pSec h3{margin:0;padding:8px 24px;font:700 30px/40px Roboto;color:var(--fg)}
-.pItems{display:flex;flex-direction:column;gap:4px}
-.pItem{display:flex;align-items:center;gap:20px;padding:17px 24px;border-radius:16px;font:400 32px/44px Roboto;color:var(--fg);cursor:pointer;width:100%;transition:background .2s,color .2s,border-radius .2s}
+.pItems{display:flex;flex-direction:column;gap:8px}
+.pItem{display:flex;align-items:center;gap:20px;padding:12px 24px;border-radius:16px;font:400 32px/44px Roboto;color:var(--fg);cursor:pointer;width:100%;transition:background .2s,color .2s,border-radius .2s}
 .pItem .chk{width:44px;height:44px;flex:none;display:flex;align-items:center;justify-content:center}
 .pItem svg{width:40px;height:40px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;visibility:hidden}
 .pItem.sel svg{visibility:visible}
@@ -461,9 +464,10 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
   <label class="tog"><span>Kanál umožňuje nahrávání</span><input type="checkbox" id="tRecordable" checked></label>
   <label class="tog"><span>Sportovní statistiky</span><input type="checkbox" id="tSport" checked></label>
   <label class="tog"><span>Lze měnit titulky / zvuk</span><input type="checkbox" id="tLang" checked></label>
+  <label class="tog"><span>Hodně titulků (12 stop)</span><input type="checkbox" id="tManySubs" checked></label>
   <label class="tog"><span>Balíček přeskakování reklam</span><input type="checkbox" id="tPackage"></label>
   <label class="tog"><span>Ad-blocker: „Přeskočit" v hlavičce</span><input type="checkbox" id="tSkipTop" checked></label>
-  <div class="hint">Předchozí ↔ Od začátku se přepíná na 10. sekundě (START_OVER_SECONDS). U živého streamu vznikne timeshift pauzou nebo přetočením zpět; „Přehrát živě" vrátí na živý okraj.</div>
+  <div class="hint">V panelu Titulky/Zvuk: ▲▼ prochází stopy, fokus se drží uprostřed a seznam roluje; ◀▶ skočí rovnou mezi Titulky a Zvuk. Předchozí ↔ Od začátku se přepíná na 10. sekundě (START_OVER_SECONDS). U živého streamu vznikne timeshift pauzou nebo přetočením zpět; „Přehrát živě" vrátí na živý okraj.</div>
 
   <h2>Sportovní režim</h2>
   <button data-sp="open">Otevřít sportovní panel<small>stejné jako Enter na tlačítku Sportovní statistiky</small></button>
@@ -704,6 +708,7 @@ function render(){
   document.querySelectorAll('.card').forEach((c,i)=>c.classList.toggle('focus',S.zone==='epg'&&i===S.epgIdx));
   $('#epgTrack').style.left=(S.zone==='epg'?(960-250-S.epgIdx*516):-838)+'px';
   document.querySelectorAll('.pItem').forEach(p=>{p.classList.toggle('sel',(p.dataset.sec==='subs'?S.subs:S.audio)===p.dataset.val);p.classList.toggle('focus',stage.classList.contains('panelOpen')&&p.dataset.sec===S.panelSec&&+p.dataset.i===S.panelIdx)});
+  if(stage.classList.contains('panelOpen'))panelScroll();
 
   const f=S.zone==='buttons'?(flat[S.idx]||{}).label:S.zone;
   $('#status').textContent=`zdroj: ${SRC[S.srcKey].name}\nmode: ${S.mode}${S.live?`  lag za živě: ${Math.round(S.lag)} s`:''}\npos: ${fmt(S.pos)} / ${fmt(S.dur)}\nvideo: ${vid.paused?'paused':'playing'}  t=${(vid.currentTime||0).toFixed(1)}  ready=${vid.readyState}\nui: ${S.uiVisible?'visible':'hidden'}  focus: ${S.zone} → ${f||'-'}\nad: ${S.ad?`klientská #${S.ad.i+1} t=${S.ad.t.toFixed(0)}s ${S.ad.skippable?'skippable':'non-skip'}${S.ad.paused?' PAUSED':''}`:(inServerBlock()?'serverový blok':'žádná')}\nrec: ${S.recorded}  subs: ${S.subs}  audio: ${S.audio}`;
@@ -723,9 +728,23 @@ const EPG=[
 $('#epgTrack').innerHTML=EPG.map((e,i)=>`<div class="card${e[2]?' live':''}" data-i="${i}"><div class="ct">${e[0]}</div><div class="ci"></div><div class="cm">${e[2]?'<b>● Právě běží</b> · ':''}${e[1]}</div></div>`).join('');
 document.querySelectorAll('.card').forEach(c=>c.onclick=e=>{e.stopPropagation();S.zone='epg';S.epgIdx=+c.dataset.i;showUI();activate()});
 
-const PANEL={subs:[['off','Vypnuto'],['cs','Čeština'],['en','Angličtina']],audio:[['cs','Čeština'],['orig','Original'],['ad','Zvukový popis']]};
+const SUBS_SHORT=[['off','Vypnuto'],['cs','Čeština'],['en','Angličtina']];
+const SUBS_LONG=[['off','Vypnuto'],['cs','Čeština'],['en','Angličtina'],['sk','Slovenština'],['de','Němčina'],['pl','Polština'],['hu','Maďarština'],['uk','Ukrajinština'],['ru','Ruština'],['fr','Francouzština'],['es','Španělština'],['it','Italština']];
+const PANEL={subs:SUBS_LONG.slice(),audio:[['cs','Čeština'],['orig','Original'],['ad','Zvukový popis']]};
+// obal, který roluje; sekce zůstávají uvnitř
+(()=>{const pn=$('#panel');const ps=document.createElement('div');ps.id='panelScroll';[...pn.children].forEach(c=>ps.appendChild(c));pn.appendChild(ps)})();
+function buildPanelItems(){document.querySelectorAll('.pItems').forEach(e=>e.remove());
 for(const sec in PANEL){const secEl=document.querySelector(`.pSec[data-sec="${sec}"]`);const box=document.createElement('div');box.className='pItems';secEl.appendChild(box);PANEL[sec].forEach((it,i)=>{const d=document.createElement('div');d.className='pItem';d.dataset.sec=sec;d.dataset.val=it[0];d.dataset.i=i;d.innerHTML='<span class="chk">'+I.check+'</span>'+it[1];d.onclick=e=>{e.stopPropagation();S.panelSec=sec;S.panelIdx=i;activate()};box.appendChild(d)})}
-function openPanel(sec){S.panelSec=sec;S.panelIdx=PANEL[sec].findIndex(x=>x[0]===(sec==='subs'?S.subs:S.audio));stage.classList.add('panelOpen');clearTimeout(S.hideTimer);render()}
+}
+buildPanelItems();
+function openPanel(sec){S.panelSec=sec;S.panelIdx=Math.max(0,PANEL[sec].findIndex(x=>x[0]===(sec==='subs'?S.subs:S.audio)));stage.classList.add('panelOpen');clearTimeout(S.hideTimer);
+  const ps=$('#panelScroll');ps.classList.add('noanim');render();void ps.offsetHeight;requestAnimationFrame(()=>ps.classList.remove('noanim'))}
+/* fokus držíme ve svislém středu panelu; seznam pod ním roluje, na krajích se zastaví (žádné prázdno) */
+function panelScroll(){const ps=$('#panelScroll');const f=ps.querySelector('.pItem.focus');if(!f)return;
+  const viewH=1080, contentH=ps.scrollHeight;
+  let target=(f.offsetTop+f.offsetHeight/2)-viewH/2;
+  target=Math.max(0,Math.min(Math.max(0,contentH-viewH),target));
+  ps.style.setProperty('--pY',(-Math.round(target))+'px')}
 function closePanel(){stage.classList.remove('panelOpen');S.zone='buttons';showUI()}
 
 /* ---------------- actions ---------------- */
@@ -823,7 +842,10 @@ setInterval(()=>{
 function move(dx,dy){
   if(stage.classList.contains('panelOpen')){
     const secs=['subs','audio'];let si=secs.indexOf(S.panelSec);
-    if(dy){let ni=S.panelIdx+dy;if(ni<0){if(si>0){S.panelSec=secs[si-1];S.panelIdx=PANEL[S.panelSec].length-1}}else if(ni>=PANEL[S.panelSec].length){if(si<secs.length-1){S.panelSec=secs[si+1];S.panelIdx=0}}else S.panelIdx=ni}
+    if(dx){ // rychlý skok Titulky ⇄ Zvuk – fokus dopadne na aktuálně vybranou stopu
+      const ns=secs[(si+(dx>0?1:secs.length-1))%secs.length];
+      S.panelSec=ns;S.panelIdx=Math.max(0,PANEL[ns].findIndex(x=>x[0]===(ns==='subs'?S.subs:S.audio)));
+    } else if(dy){let ni=S.panelIdx+dy;if(ni<0){if(si>0){S.panelSec=secs[si-1];S.panelIdx=PANEL[S.panelSec].length-1}}else if(ni>=PANEL[S.panelSec].length){if(si<secs.length-1){S.panelSec=secs[si+1];S.panelIdx=0}}else S.panelIdx=ni}
     render();return;
   }
   if(!S.uiVisible){ if(dy<0)showHelp(); else showUI(); return }
@@ -880,6 +902,7 @@ $('#tSound').onchange=e=>{vid.muted=!e.target.checked;if(!vid.muted)vid.play().c
 $('#tRecordable').onchange=e=>{S.recordable=e.target.checked;showUI()};
 $('#tSport').onchange=e=>{S.sport=e.target.checked;showUI()};
 $('#tLang').onchange=e=>{S.lang=e.target.checked;showUI()};
+$('#tManySubs').onchange=e=>{PANEL.subs=(e.target.checked?SUBS_LONG:SUBS_SHORT).slice();if(!PANEL.subs.some(x=>x[0]===S.subs))S.subs='en';buildPanelItems();if(S.panelSec==='subs')S.panelIdx=Math.max(0,PANEL.subs.findIndex(x=>x[0]===S.subs));render()};
 $('#tPackage').onchange=e=>{S.pkg=e.target.checked;showUI()};
 $('#tSkipTop').onchange=e=>{S.skipTop=e.target.checked;showUI()};
 document.querySelectorAll('#side [data-ad]').forEach(b=>b.onclick=()=>{const k=b.dataset.ad;if(k==='stop'){S.serverBlocks=[];if(S.ad)stopAd(false);else render();toast('Reklamy vyčištěny')}else if(k==='server')startServerAd();else startClientAd(k)});
