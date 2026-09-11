@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nahrávky – prototyp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--fg:#eaecf2;--fg2:#c7ccd6;--ink:#1b1e29;--g750:#2c3242;--g800:#262c3b;--g950:#05070a;--blue:#01a3fe;--red:#f04438}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Roboto,system-ui,sans-serif;overflow:hidden}
+#app{display:flex;height:100vh;width:100vw}
+#stageWrap{flex:1;display:flex;align-items:center;justify-content:center;min-width:0}
+#stage{width:1920px;height:1080px;position:relative;overflow:hidden;background:var(--g950);transform-origin:center;flex:none;user-select:none;border-radius:8px;box-shadow:0 0 0 1px rgba(255,255,255,.06),0 30px 80px rgba(0,0,0,.6)}
+#bg{position:absolute;inset:0;background:url(img/bg.jpg) center/cover;transition:opacity .4s}
+#bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,7,10,.35),rgba(5,7,10,.55))}
+#stage.empty #bg{opacity:0}
+#stage.empty{background:radial-gradient(ellipse 60% 70% at 72% 55%,#151b2a 0%,#0b0e16 55%,var(--g950) 100%)}
+
+/* ---------- menu (rail) ---------- */
+#menu{position:absolute;left:0;top:0;width:110px;height:1080px;backdrop-filter:blur(20px);background:rgba(5,7,10,.25)}
+#avatar{position:absolute;left:31px;top:60px;width:48px;height:48px;border-radius:16px;background:url(img/avatar.svg) center/cover}
+#rail{position:absolute;left:0;top:270px;display:flex;flex-direction:column}
+.mi{width:110px;height:90px;display:flex;align-items:center;justify-content:center;position:relative;border-radius:0 20px 20px 0;color:var(--fg2);cursor:pointer;transition:background .2s}
+.mi svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.mi.active{background:var(--g750);color:var(--fg)}
+.mi.active::before{content:"";position:absolute;left:4px;top:5px;width:6px;height:80px;border-radius:3px;background:var(--blue)}
+.mi.focus{background:var(--fg);color:var(--ink)}
+.mi.focus::before{display:none}
+
+/* ---------- left content ---------- */
+#left{position:absolute;left:170px;top:100px;width:570px;height:880px}
+#head{display:flex;flex-direction:column;gap:24px;width:500px}
+#title{font:700 57px/64px Roboto;color:var(--fg);text-shadow:0 2px 4px rgba(0,0,0,.24),0 4px 8px rgba(0,0,0,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;height:66px;display:flex;align-items:center;width:570px}
+#quota{font:400 29px/36px Roboto;color:var(--fg2);text-shadow:0 1px 2px rgba(0,0,0,.12),0 1px 3px rgba(0,0,0,.2)}
+#quota b{font-weight:600;color:var(--fg)}
+#quotaBar{height:6px;width:500px;border-radius:3px;background:rgba(255,255,255,.2);overflow:hidden}
+#quotaBar i{display:block;height:100%;background:var(--blue);border-radius:3px;transition:width .4s}
+#meta[hidden],#quota[hidden],#quotaBar[hidden]{display:none}
+#meta{display:flex;flex-direction:column;gap:12px;font:400 29px/36px Roboto;color:var(--fg2);text-shadow:0 1px 2px rgba(0,0,0,.12),0 1px 3px rgba(0,0,0,.2)}
+#meta .row{display:flex;gap:28px;align-items:center;white-space:nowrap}
+#meta .stars{color:#f5a524;letter-spacing:2px}
+#meta .age{background:var(--fg);color:var(--ink);font:600 22px/30px Roboto;padding:0 12px;border-radius:999px}
+#filters{position:absolute;left:0;top:264px;display:flex;flex-direction:column;gap:12px;width:500px}
+.flt{width:500px;padding:14px 32px;border-radius:999px;display:flex;align-items:center;justify-content:space-between;gap:32px;font:400 31px/40px Roboto;color:var(--fg);cursor:pointer;transition:background .18s ease-out,color .18s ease-out}
+.flt span:last-child{color:var(--fg2)}
+.flt.focus{background:var(--fg);color:var(--ink);font-weight:500}
+.flt.focus span:last-child{color:var(--ink)}
+.flt.soft{background:rgba(255,255,255,.18)}
+.flt .chk{width:36px;height:36px;border-radius:50%;border:2px solid var(--fg2);display:flex;align-items:center;justify-content:center;flex:none}
+.flt .chk.on{background:var(--blue);border-color:var(--blue)}
+.flt .chk svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;visibility:hidden}
+.flt .chk.on svg{visibility:visible}
+.flt.focus .chk{border-color:var(--ink)}.flt.focus .chk.on{background:var(--blue);border-color:var(--blue)}
+
+/* ---------- right list ---------- */
+#right{position:absolute;left:840px;top:0;width:1080px;height:1080px;overflow:hidden;-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 140px),transparent 100%);mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 140px),transparent 100%)}
+#list{position:absolute;left:0;top:100px;width:1080px;display:flex;flex-direction:column;gap:32px;transform:translateY(var(--ly,0px));transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+#list.noanim{transition:none}
+.card{position:relative;width:980px;height:196px;display:flex;align-items:center;gap:32px;padding:8px;border-radius:24px 0 0 24px;flex:none;cursor:pointer}
+.card .poster{position:relative;width:320px;height:180px;border-radius:20px;overflow:hidden;flex:none;background:#000 url(img/poster.jpg) center/cover}
+.card .poster::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.15);transition:opacity .2s}
+.card.focus .poster::after{opacity:0}
+.card .ep{position:absolute;left:0;bottom:0;padding:12px 20px;font:400 23px/32px Roboto;color:var(--fg);text-shadow:0 1px 2px rgba(0,0,0,.12),0 1px 3px rgba(0,0,0,.2);background:linear-gradient(to top,rgba(0,0,0,.55),transparent);width:100%}
+.card .badge{position:absolute;right:10px;top:10px;padding:4px 14px;border-radius:999px;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);font:500 23px/32px Roboto;color:var(--fg);display:flex;gap:8px;align-items:center;white-space:nowrap}
+.card .badge svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.card .txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px;padding-right:100px}
+.card .t{font:500 31px/40px Roboto;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .d{font:400 23px/32px Roboto;color:var(--fg2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card .m{display:flex;gap:24px;align-items:center;font:400 23px/32px Roboto;color:var(--fg2);white-space:nowrap}
+.card .m .rec{width:24px;height:24px;border-radius:50%;border:3px solid var(--red);display:flex;align-items:center;justify-content:center;flex:none}
+.card .m .rec::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--red)}
+.card.unrec .m .rec{border-color:var(--fg2)}.card.unrec .m .rec::after{background:transparent}
+.card.focus .t{color:var(--fg)}
+.card.dim{opacity:.55}
+.card.focus.dim{opacity:1}
+.card::after{content:"";position:absolute;inset:-4px -4px -4px -4px;border-radius:24px;border:6px solid #000;box-shadow:0 0 0 4px var(--fg);opacity:0;pointer-events:none;transition:opacity .15s}
+.card.focus::after{opacity:1}
+.card .chev{position:absolute;right:56px;top:50%;transform:translateY(-50%);width:36px;height:64px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
+.card .chev svg{width:28px;height:28px;fill:none;stroke:var(--fg);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.card.focus .chev{opacity:1}
+/* covering buttons over the card */
+.cover{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:320px;display:none;flex-direction:column;gap:16px}
+.card.covered .cover{display:flex}
+.card.covered .txt{visibility:hidden}
+.card.covered .chev{opacity:0}
+.cb{padding:14px 32px;border-radius:999px;font:400 31px/40px Roboto;color:var(--fg);text-align:left;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cb.focus{background:var(--fg);color:var(--ink);font-weight:500}
+.cover .yn{display:flex;gap:8px}
+.cover .yn .cb{flex:1;text-align:center}
+
+/* ---------- empty ---------- */
+#emptyState{position:absolute;left:840px;top:0;width:1080px;height:1080px;display:none;flex-direction:column;align-items:center;justify-content:center;gap:64px;color:var(--fg2);font:400 31px/40px Roboto}
+#stage.empty #emptyState{display:flex}
+#stage.empty #right{display:none}
+#emptyState svg{width:170px;height:150px;fill:none;stroke:var(--fg);stroke-width:8;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- toast + hint ---------- */
+#toast{position:absolute;left:50%;top:40px;transform:translate(-50%,-20px);background:rgba(0,0,0,.5);backdrop-filter:blur(8px);border-radius:50px;height:78px;padding:0 32px;font:500 30px Roboto;color:var(--fg);display:flex;align-items:center;opacity:0;transition:.3s cubic-bezier(.2,.8,.2,1);pointer-events:none;z-index:9;max-width:1400px;white-space:nowrap}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- sidebar ---------- */
+#side{width:340px;flex:none;background:#14161d;border-left:1px solid rgba(255,255,255,.08);padding:18px 18px 30px;overflow:auto;font-size:13px;color:#c8ccd6}
+#side h1{font-size:15px;margin:0 0 4px;color:#fff}
+#side .sub{color:#8a90a0;font-size:12px;margin-bottom:14px}
+#side h2{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8a90a0;margin:18px 0 8px}
+#side button{display:block;width:100%;text-align:left;background:#1f222c;color:#e6e8ee;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 10px;margin-bottom:6px;font:inherit;cursor:pointer}
+#side button:hover{background:#2a2e3a}
+#side button.act{border-color:var(--blue);background:rgba(1,163,254,.12)}
+#side button small{display:block;color:#8a90a0;font-size:11px;margin-top:2px}
+#side label.tog{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:#1f222c;border-radius:8px;margin-bottom:6px;cursor:pointer;border:1px solid rgba(255,255,255,.08)}
+#side kbd{background:#2a2e3a;border-radius:4px;padding:1px 6px;font:11px ui-monospace,monospace;color:#fff;border:1px solid rgba(255,255,255,.12)}
+#side .keys div{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed rgba(255,255,255,.06)}
+#status{font:11px ui-monospace,monospace;background:#0c0d12;border-radius:8px;padding:8px 10px;white-space:pre-wrap;color:#9fe0ff;margin-top:6px;line-height:1.5}
+#side .hint{color:#8a90a0;font-size:11px;margin-top:8px;line-height:1.4}
+#side a{color:#9fe0ff}
+</style>
+</head>
+<body>
+<div id="app">
+<div id="stageWrap">
+<div id="stage" tabindex="0">
+  <div id="bg"></div>
+  <div id="menu"><div id="avatar"></div><div id="rail"></div></div>
+  <div id="left">
+    <div id="head"><div id="title">Recordings</div><div id="quota"></div><div id="quotaBar"><i></i></div><div id="meta" hidden></div></div>
+    <div id="filters"></div>
+  </div>
+  <div id="right"><div id="list"></div></div>
+  <div id="emptyState">
+    <svg viewBox="0 0 170 150"><path d="M12 30v96a12 12 0 0 0 12 12h118a12 12 0 0 0 12-12V54a12 12 0 0 0-12-12H84L68 24H24a12 12 0 0 0-12 6z"/><path d="M66 78l32 32M98 78l-32 32"/></svg>
+    <div>Actually you don't have any recordings</div>
+  </div>
+  <div id="toast"></div>
+</div>
+</div>
+
+<aside id="side">
+  <h1>Nahrávky – prototyp</h1>
+  <div class="sub">Podle Figmy „⏳ Recordings" (větev SmartTV - ATV). Klikni do obrazu a ovládej klávesami jako dálkovým. <a href="../">← Player</a></div>
+
+  <h2>Ovládání</h2>
+  <div class="keys">
+    <div><span>Pohyb</span><span><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd></span></div>
+    <div><span>OK / detail</span><span><kbd>Enter</kbd></span></div>
+    <div><span>Akce na kartě</span><span><kbd>→</kbd> na fokusované kartě</span></div>
+    <div><span>Zpět</span><span><kbd>Esc</kbd> <kbd>Backspace</kbd></span></div>
+  </div>
+
+  <h2>Obrazovky</h2>
+  <button data-go="recordings">Nahrávky<small>filtry vlevo, seznam nahrávek vpravo</small></button>
+  <button data-go="episodes">Epizody seriálu<small>detail seriálu, série vlevo, epizody vpravo</small></button>
+  <button data-go="unavailable">Nedostupné nahrávky<small>badge Nedostatečná kapacita / Ve vyšším balíčku</small></button>
+  <button data-go="empty">Bez nahrávek<small>prázdný stav</small></button>
+
+  <h2>Nastavení</h2>
+  <label class="tog"><span>Zobrazit i nenahrané epizody</span><input type="checkbox" id="tAllEps"></label>
+  <label class="tog"><span>Dlouhé názvy</span><input type="checkbox" id="tLong"></label>
+
+  <h2>Stav</h2>
+  <div id="status"></div>
+  <div class="hint">Vpravo na fokusované kartě odkryje akce (Remove / Prolong), Enter na Remove chce potvrzení Yes / No – výchozí fokus je na No. Seznam vpravo roluje tak, aby fokus nešel pod čtvrtou pozici.</div>
+</aside>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const stage=$('#stage');
+const I={
+  search:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  home:'<svg viewBox="0 0 24 24"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/></svg>',
+  tv:'<svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="m8 3 4 4 4-4"/></svg>',
+  list:'<svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
+  rec:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>',
+  archive:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>',
+  chev:'<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>',
+  check:'<svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>',
+  ban:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m5.5 5.5 13 13"/></svg>'
+};
+const MENU=[['search',I.search],['home',I.home],['tv',I.tv],['list',I.list],['rec',I.rec],['archive',I.archive]];
+$('#rail').innerHTML=MENU.map(m=>`<div class="mi${m[0]==='rec'?' active':''}" data-m="${m[0]}">${m[1]}</div>`).join('');
+
+/* ---------- data ---------- */
+const SERIES={title:'Hvězdná brána: Atlantida',longTitle:'Hvězdná brána: Atlantida – speciální rozšířená edice s komentářem tvůrců',series:'3 Series',eps:'16 episodes',dur:'3 h 20 min',exp:'6 episodes expires on 22. 2. 2022'};
+const REC=[
+  {id:1,type:'series',title:'Hvězdná brána: Atlantida',m1:['3 Series','16 episodes','3 h 20 min'],m2:'6 episodes expires on 22. 2. 2022',ep:'S01E03'},
+  {id:2,type:'movie',title:'Matrix',m1:['Movie','2 h 16 min'],m2:'Expires on 3. 3. 2022',ep:'',last:true},
+  {id:3,type:'series',title:'Hvězdná brána: SG-1',m1:['2 Series','9 episodes','6 h 45 min'],m2:'Expires on 14. 4. 2022',ep:'S02E01'},
+  {id:4,type:'show',title:'Prostřeno!',m1:['Show','5 episodes','4 h 10 min'],m2:'2 episodes expires on 20. 2. 2022',ep:'',last:true},
+  {id:5,type:'movie',title:'Interstellar',m1:['Movie','2 h 49 min'],m2:'Expires on 28. 3. 2022',ep:''},
+  {id:6,type:'series',title:'Případy 1. oddělení',m1:['1 Series','4 episodes','3 h 50 min'],m2:'Expires on 9. 4. 2022',ep:'S01E04'},
+  {id:7,type:'show',title:'Show Jana Krause',m1:['Show','3 episodes','2 h 30 min'],m2:'1 episode expires on 21. 2. 2022',ep:'',last:true},
+  {id:8,type:'movie',title:'Pelíšky',m1:['Movie','1 h 55 min'],m2:'Expires on 1. 5. 2022',ep:''}
+];
+const UNAV=[
+  {id:101,title:'Epizoda S01E02',m1:['3 h 20 min'],badge:'Nedostatečná kapacita',ep:'S01E03'},
+  {id:102,title:'Hvězdná brána: Atlantida',m1:['3 h 20 min'],badge:'Ve vyšším balíčku',ep:'S01E03'},
+  {id:103,title:'Epizoda S01E02',m1:['3 h 20 min'],badge:'Nedostatečná kapacita',ep:'S01E03'},
+  {id:104,title:'Epizoda S01E02',m1:['3 h 20 min'],badge:'Nedostatečná kapacita',ep:'S01E03'},
+  {id:105,title:'Epizoda S01E05',m1:['44 min'],badge:'Nedostatečná kapacita',ep:'S01E05'}
+];
+const EPS=Array.from({length:12},(_,i)=>({id:200+i,title:'Hvězdná brána: Atlantida',desc:'Lorem ipsum dolor sit amet, consectetur adipedf elit. Sed vel risus vehicula, egede c…',m1:['44 min','National Geographic','Po, 22. 12.'],ep:'S01E'+String(i+1).padStart(2,'0'),recorded:i%3!==2}));
+const FILTERS_REC=[['all','All',''],['movie','Movies','15 h 20 min'],['series','Series','21 h 10 min'],['show','Shows',''],['unavail','Unavailable recordings',''],['last','Last chance','']];
+const SEASONS=[['s1','Serie 1','3 episoded'],['s2','Serie 2','27 episoded'],['s3','Serie 3','1 episode'],['s4','Serie 4','6 episoded'],['s5','Serie 5','12 episoded'],['s6','Serie 6','18 episoded'],['s7','Serie 7','4 episoded']];
+
+/* ---------- state ---------- */
+const S={screen:'recordings',zone:'left',menuIdx:4,leftIdx:0,rightIdx:0,filter:'all',season:'s1',onlyRecorded:true,cover:null,coverIdx:0,confirm:false,removed:new Set(),longTitles:false,toastT:null,empty:false};
+
+function items(){
+  if(S.screen==='episodes'){let l=EPS.filter(e=>!S.removed.has(e.id));if(S.onlyRecorded)l=l.filter(e=>e.recorded);return l}
+  if(S.filter==='unavail')return UNAV.filter(e=>!S.removed.has(e.id));
+  let l=REC.filter(r=>!S.removed.has(r.id));
+  if(S.filter==='movie')l=l.filter(r=>r.type==='movie');else if(S.filter==='series')l=l.filter(r=>r.type==='series');else if(S.filter==='show')l=l.filter(r=>r.type==='show');else if(S.filter==='last')l=l.filter(r=>r.last);
+  return l;
+}
+function leftItems(){ if(S.screen==='episodes')return [['back','Back to detail',''],['only','Show only recorded','chk'],...SEASONS]; return S.empty?FILTERS_REC.filter(f=>f[0]!=='last'):FILTERS_REC }
+
+/* ---------- render ---------- */
+function toast(t,ms=2400){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(S.toastT);S.toastT=setTimeout(()=>el.classList.remove('on'),ms)}
+function render(){
+  stage.classList.toggle('empty',S.empty&&S.screen==='recordings');
+  // menu
+  document.querySelectorAll('.mi').forEach((m,i)=>m.classList.toggle('focus',S.zone==='menu'&&i===S.menuIdx));
+  // head
+  const ep=S.screen==='episodes';
+  $('#title').textContent=ep?(S.longTitles?SERIES.longTitle:'Name of movie / character'):'Recordings';
+  $('#quota').hidden=ep;$('#quotaBar').hidden=ep;$('#meta').hidden=!ep;
+  if(!ep){$('#quota').innerHTML=S.empty?'Available <b>50h</b> from <b>50h</b>':'Available <b>7h 30m</b> from <b>50h</b>';$('#quotaBar i').style.width=S.empty?'100%':'50%'}
+  else $('#meta').innerHTML='<div class="row"><span>Year</span><span class="stars">★★★☆☆</span><span class="age">18+</span><span>Gender / Gender</span></div><div class="row"><span>2h 55 min</span><span>Channel</span><span>21. 08.</span><span>7 episodes</span></div>';
+  // left list
+  const L=leftItems();const fl=$('#filters');
+  fl.innerHTML=L.map((f,i)=>{const foc=S.zone==='left'&&i===S.leftIdx;const active=(ep?f[0]===S.season:f[0]===S.filter);
+    let right=f[2]==='chk'?`<span class="chk${S.onlyRecorded?' on':''}">${I.check}</span>`:`<span>${S.empty&&f[2]&&!ep?'0 h':f[2]}</span>`;
+    return `<div class="flt${foc?' focus':''}${(!foc&&f[0]==='back')?' soft':''}" data-i="${i}"><span>${f[1]}</span>${right}</div>`}).join('');
+  fl.querySelectorAll('.flt').forEach(e=>e.onclick=()=>{S.zone='left';S.leftIdx=+e.dataset.i;activate()});
+  // right list
+  const list=items();const ul=$('#list');
+  if(S.rightIdx>=list.length)S.rightIdx=Math.max(0,list.length-1);
+  ul.innerHTML=list.map((r,i)=>{const foc=S.zone==='right'&&i===S.rightIdx;const cov=S.cover&&S.cover.id===r.id;
+    const unav=!!r.badge;const t=S.longTitles&&!unav?r.title+' – rozšířená edice s komentářem tvůrců a bonusovými scénami':r.title;
+    const meta=r.m1.map(x=>`<span>${x}</span>`).join('');
+    const rec=ep?`<span class="rec"></span>`:'';
+    const line2=r.m2?`<div class="m"><span>${r.m2}</span></div>`:(r.desc?`<div class="d">${r.desc}</div>`:'');
+    const buttons=cov?coverHTML(r):'';
+    return `<div class="card${foc?' focus':''}${cov?' covered':''}${(ep&&!r.recorded)?' unrec dim':''}${unav?' dim':''}" data-i="${i}">
+      <div class="poster">${r.badge?`<div class="badge">${I.ban}${r.badge}</div>`:''}${r.ep?`<div class="ep">${r.ep}</div>`:''}</div>
+      <div class="txt"><div class="t">${t}</div>${r.desc?line2:''}<div class="m">${rec}${meta}</div>${r.m2?line2:''}</div>
+      <div class="chev">${I.chev}</div>
+      <div class="cover">${buttons}</div></div>`}).join('');
+  ul.querySelectorAll('.card').forEach(c=>c.onclick=()=>{S.zone='right';S.rightIdx=+c.dataset.i;closeCover();render()});
+  ul.querySelectorAll('.cb').forEach(b=>b.onclick=e=>{e.stopPropagation();S.coverIdx=+b.dataset.k;coverActivate()});
+  // scroll: fokus nejde pod 4. pozici (100 + 3×228), na konci se dorolování zastaví
+  const n=list.length,step=228;let first=Math.max(0,S.rightIdx-3);first=Math.min(first,Math.max(0,n-4));
+  ul.style.setProperty('--ly',(-first*step)+'px');
+  // status
+  const f=S.zone==='left'?L[S.leftIdx]?.[1]:S.zone==='right'?list[S.rightIdx]?.title:MENU[S.menuIdx][0];
+  $('#status').textContent=`screen: ${S.screen}  filter: ${S.filter}${ep?'  season: '+S.season:''}\nzone: ${S.zone}  → ${f||'-'}\nkaret: ${n}  scroll od: ${first}\ncover: ${S.cover?(S.confirm?'potvrzení Yes/No':'akce '+S.coverIdx):'–'}\nodstraněno: ${S.removed.size}`;
+  document.querySelectorAll('#side [data-go]').forEach(b=>b.classList.toggle('act',(b.dataset.go==='unavailable'?S.filter==='unavail':b.dataset.go==='empty'?S.empty:b.dataset.go===S.screen&&!S.empty&&S.filter!=='unavail')));
+}
+function coverHTML(r){
+  if(S.confirm)return `<div class="cb" style="text-align:center;background:transparent;backdrop-filter:none;color:var(--fg2);font-size:26px;padding:0 8px">Remove?</div><div class="yn"><div class="cb${S.coverIdx===0?' focus':''}" data-k="0">Yes</div><div class="cb${S.coverIdx===1?' focus':''}" data-k="1">No</div></div>`;
+  const acts=coverActions(r);
+  return acts.map((a,i)=>`<div class="cb${S.coverIdx===i?' focus':''}" data-k="${i}">${a}</div>`).join('');
+}
+function coverActions(r){ if(S.screen==='episodes'&&!r.recorded)return ['Record episode']; if(r.badge)return ['Remove recording']; return [S.screen==='episodes'?'Remove episode':'Remove recording','Prolong'] }
+
+/* ---------- navigation ---------- */
+function openCover(){const list=items();const r=list[S.rightIdx];if(!r)return;S.cover=r;S.coverIdx=0;S.confirm=false;render()}
+function closeCover(){S.cover=null;S.confirm=false;S.coverIdx=0}
+function coverActivate(){
+  const r=S.cover;if(!r)return;const acts=coverActions(r);
+  if(S.confirm){ if(S.coverIdx===0){ if(acts[0]==='Record episode'){r.recorded=true;toast('Episode scheduled to record')} else {S.removed.add(r.id);toast(r.badge?'Recording removed':(S.screen==='episodes'?'Episode removed':'Recording removed'))} closeCover();render();return } closeCover();render();return }
+  const a=acts[S.coverIdx];
+  if(a==='Prolong'){toast('Prolonged by 7 days');closeCover();render();return}
+  S.confirm=true;S.coverIdx=1;render(); // výchozí fokus na No – nevratná akce
+}
+function activate(){
+  if(S.cover){coverActivate();return}
+  if(S.zone==='menu'){toast(MENU[S.menuIdx][0]==='rec'?'Recordings':'Section „'+MENU[S.menuIdx][0]+'" – outside prototype');return}
+  if(S.zone==='left'){const f=leftItems()[S.leftIdx];
+    if(S.screen==='episodes'){ if(f[0]==='back'){go('recordings');return} if(f[0]==='only'){S.onlyRecorded=!S.onlyRecorded;S.rightIdx=0;render();return} S.season=f[0];S.rightIdx=0;render();return }
+    S.filter=f[0];S.rightIdx=0;render();return }
+  if(S.zone==='right'){const r=items()[S.rightIdx];if(!r)return;
+    if(S.screen==='episodes'){toast('Play: '+r.ep+' – '+r.title);return}
+    if(r.badge){toast('Recording unavailable: '+r.badge);return}
+    if(r.type==='series'||r.type==='show'){go('episodes');return}
+    toast('Play: '+r.title)}
+}
+function go(screen,opts={}){S.screen=screen;closeCover();S.rightIdx=0;S.empty=false;
+  if(screen==='episodes'){S.zone='right';S.leftIdx=0}
+  else {S.zone='left';S.filter=opts.filter||'all';S.leftIdx=FILTERS_REC.findIndex(f=>f[0]===S.filter);S.empty=!!opts.empty}
+  $('#list').classList.add('noanim');render();void $('#list').offsetHeight;requestAnimationFrame(()=>$('#list').classList.remove('noanim'));
+}
+function move(dx,dy){
+  if(S.cover){ // uvnitř akcí
+    if(S.confirm){ if(dx)S.coverIdx=S.coverIdx===0?1:0; render();return }
+    const n=coverActions(S.cover).length;
+    if(dy)S.coverIdx=Math.max(0,Math.min(n-1,S.coverIdx+dy));
+    if(dx<0){closeCover()}
+    render();return }
+  if(dx<0){ if(S.zone==='right'){S.zone='left'} else if(S.zone==='left'){S.zone='menu'} }
+  else if(dx>0){ if(S.zone==='menu'){S.zone='left'} else if(S.zone==='left'){ if(items().length&&!S.empty)S.zone='right'} else if(S.zone==='right'){openCover();return} }
+  else if(dy){
+    if(S.zone==='menu')S.menuIdx=Math.max(0,Math.min(MENU.length-1,S.menuIdx+dy));
+    else if(S.zone==='left')S.leftIdx=Math.max(0,Math.min(leftItems().length-1,S.leftIdx+dy));
+    else S.rightIdx=Math.max(0,Math.min(items().length-1,S.rightIdx+dy));
+  }
+  render();
+}
+function back(){ if(S.cover){ if(S.confirm){S.confirm=false;S.coverIdx=0;render();return} closeCover();render();return } if(S.screen==='episodes'){go('recordings');return} if(S.zone==='right'){S.zone='left';render();return} toast('Back – leaves Recordings (outside prototype)') }
+document.addEventListener('keydown',e=>{const k=e.key;if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter','Escape','Backspace'].includes(k))return;e.preventDefault();
+  if(k==='ArrowLeft')move(-1,0);else if(k==='ArrowRight')move(1,0);else if(k==='ArrowUp')move(0,-1);else if(k==='ArrowDown')move(0,1);else if(k==='Enter')activate();else back()});
+document.querySelectorAll('.mi').forEach((m,i)=>m.onclick=()=>{S.zone='menu';S.menuIdx=i;render()});
+
+/* ---------- sidebar ---------- */
+document.querySelectorAll('#side [data-go]').forEach(b=>b.onclick=()=>{const g=b.dataset.go;if(g==='unavailable')go('recordings',{filter:'unavail'});else if(g==='empty')go('recordings',{empty:true});else go(g)});
+$('#tAllEps').onchange=e=>{S.onlyRecorded=!e.target.checked;S.rightIdx=0;render()};
+$('#tLong').onchange=e=>{S.longTitles=e.target.checked;render()};
+
+function fit(){const w=$('#stageWrap').clientWidth-32,h=$('#stageWrap').clientHeight-32;stage.style.transform=`scale(${Math.min(w/1920,h/1080)})`}
+window.addEventListener('resize',fit);fit();
+go('recordings');stage.focus();
+</script>
+</body>
+</html>

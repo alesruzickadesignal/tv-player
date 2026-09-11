@@ -14,6 +14,10 @@ python3 -m http.server 8765
 
 a otevřít http://localhost:8765. Video jsou veřejné testovací HLS/MP4 streamy třetích stran (mohou být dočasně nedostupné).
 
+## Nahrávky
+
+Druhý prototyp – obrazovka Nahrávky (filtry, seznam nahrávek, epizody seriálu, akce Remove/Prolong s potvrzením, nedostupné nahrávky, prázdný stav) podle větve Figmy „⏳ Recordings". Běží na `recordings/index.html`, živě: https://alesruzickadesignal.github.io/tv-player/recordings/
+
 ## Ovládání
 
 Klikni do obrazu a ovládej jako dálkovým: šipky, Enter (OK), Esc/Backspace (Zpět), mezerník (Play/Pauza). Scénáře a nastavení jsou v panelu vpravo.
