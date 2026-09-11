@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--fg:#eaecf2;--fg2:#c7ccd6;--ink:#1b1e29;--g750:#2c3242;--g800:#262c3b;--g950:#05070a;--blue:#01a3fe;--red:#f04438}
+:root{--fg:#eaecf2;--fg2:#c7ccd6;--fgDis:#949cad;--ink:#1b1e29;--g750:#2c3242;--g800:#262c3b;--g950:#05070a;--blue:#01a3fe;--red:#f04438}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Roboto,system-ui,sans-serif;overflow:hidden}
 #app{display:flex;height:100vh;width:100vw}
@@ -48,8 +48,9 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
 .flt.focus span:last-child{color:var(--ink)}
 .flt.soft{background:var(--g750);color:var(--fg2)}
 /* fokus vpravo: ostatní položky vlevo přejdou do neaktivního stavu (text secondary), animovaně jako pravá strana */
-#stage[data-zone=right] .flt:not(.soft){color:var(--fg2)}
-#stage[data-zone=right] .flt:not(.soft) .chk{border-color:var(--fg2)}
+#stage[data-zone=right] .flt:not(.soft){color:var(--fgDis)}
+#stage[data-zone=right] .flt:not(.soft) span:last-child{color:var(--fgDis)}
+#stage[data-zone=right] .flt:not(.soft) .chk{border-color:var(--fgDis)}
 .flt{transition:background .25s ease-out,color .25s ease-out}
 .flt .chk{width:36px;height:36px;border-radius:50%;border:2px solid var(--fg2);display:flex;align-items:center;justify-content:center;flex:none}
 .flt .chk.on{background:var(--blue);border-color:var(--blue)}
