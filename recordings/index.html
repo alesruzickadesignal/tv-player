@@ -47,6 +47,10 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
 .flt.focus{background:var(--fg);color:var(--ink);font-weight:500}
 .flt.focus span:last-child{color:var(--ink)}
 .flt.soft{background:var(--g750)}
+/* fokus vpravo: ostatní položky vlevo do neaktivního stavu, zapamatovaná zůstává */
+#stage[data-zone=right] .flt:not(.soft){color:var(--fg2);opacity:.55}
+#stage[data-zone=right] .flt:not(.soft) .chk{border-color:var(--fg2)}
+.flt{transition:background .18s ease-out,color .18s ease-out,opacity .18s ease-out}
 .flt .chk{width:36px;height:36px;border-radius:50%;border:2px solid var(--fg2);display:flex;align-items:center;justify-content:center;flex:none}
 .flt .chk.on{background:var(--blue);border-color:var(--blue)}
 .flt .chk svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;visibility:hidden}
