@@ -13,8 +13,9 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
 #app{display:flex;height:100vh;width:100vw}
 #stageWrap{flex:1;display:flex;align-items:center;justify-content:center;min-width:0}
 #stage{width:1920px;height:1080px;position:relative;overflow:hidden;background:var(--g950);transform-origin:center;flex:none;user-select:none;border-radius:8px;box-shadow:0 0 0 1px rgba(255,255,255,.06),0 30px 80px rgba(0,0,0,.6)}
-#bg{position:absolute;inset:0;background:url(img/bg.jpg) center/cover;opacity:.16;transition:opacity .4s}
-#stage.empty #bg{opacity:0}
+#bg,#bg2{position:absolute;inset:0;background:center/cover;opacity:0;transition:opacity .55s ease-out}
+#bg{background-image:url(img/bg.jpg);opacity:.16}
+#stage.empty #bg,#stage.empty #bg2{opacity:0!important}
 #stage.empty{background:radial-gradient(ellipse 60% 70% at 72% 55%,#151b2a 0%,#0b0e16 55%,var(--g950) 100%)}
 
 /* ---------- menu (rail) ---------- */
@@ -127,6 +128,7 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
 <div id="stageWrap">
 <div id="stage" tabindex="0">
   <div id="bg"></div>
+  <div id="bg2"></div>
   <div id="menu"><div id="avatar"></div><div id="rail"></div></div>
   <div id="left">
     <div id="head"><div id="title">Recordings</div><div id="quota"></div><div id="quotaBar"><i></i></div><div id="meta" hidden></div></div>
@@ -226,6 +228,10 @@ function items(){
 function leftItems(){ if(S.screen==='episodes')return [['back','Back to detail',''],['only','Show only recorded','chk'],...SEASONS]; return S.empty?FILTERS_REC.filter(f=>f[0]!=='last'):FILTERS_REC }
 
 /* ---------- render ---------- */
+let _bgTop=false,_bgCur='bg.jpg';
+function setBackdrop(img){ if(!img||img===_bgCur)return; _bgCur=img;
+  const show=_bgTop?$('#bg'):$('#bg2'), hide=_bgTop?$('#bg2'):$('#bg');
+  show.style.backgroundImage=`url(img/${img})`;show.style.opacity='.16';hide.style.opacity='0';_bgTop=!_bgTop}
 function toast(t,ms=2400){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(S.toastT);S.toastT=setTimeout(()=>el.classList.remove('on'),ms)}
 function render(){
   stage.classList.toggle('empty',S.empty&&S.screen==='recordings');stage.dataset.zone=S.zone;
@@ -262,6 +268,8 @@ function render(){
   // scroll: fokus nejde pod 4. pozici (100 + 3×228), na konci se dorolování zastaví
   const n=list.length,step=228;let first=Math.max(0,S.rightIdx-3);first=Math.min(first,Math.max(0,n-4));
   ul.style.setProperty('--ly',(-first*step)+'px');
+  // backdrop podle fokusované karty (vlevo: první v seznamu)
+  if(!S.empty){const cur=list[S.zone==='right'?S.rightIdx:0];setBackdrop(cur?cur.img:'bg.jpg')}
   // status
   const f=S.zone==='left'?L[S.leftIdx]?.[1]:S.zone==='right'?list[S.rightIdx]?.title:MENU[S.menuIdx][0];
   $('#status').textContent=`screen: ${S.screen}  filter: ${S.filter}${ep?'  season: '+S.season:''}\nzone: ${S.zone}  → ${f||'-'}\nkaret: ${n}  scroll od: ${first}\ncover: ${S.cover?(S.confirm?'potvrzení Yes/No':'akce '+S.coverIdx):'–'}\nodstraněno: ${S.removed.size}`;
