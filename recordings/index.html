@@ -13,13 +13,12 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
 #app{display:flex;height:100vh;width:100vw}
 #stageWrap{flex:1;display:flex;align-items:center;justify-content:center;min-width:0}
 #stage{width:1920px;height:1080px;position:relative;overflow:hidden;background:var(--g950);transform-origin:center;flex:none;user-select:none;border-radius:8px;box-shadow:0 0 0 1px rgba(255,255,255,.06),0 30px 80px rgba(0,0,0,.6)}
-#bg{position:absolute;inset:0;background:url(img/bg.jpg) center/cover;transition:opacity .4s}
-#bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,7,10,.35),rgba(5,7,10,.55))}
+#bg{position:absolute;inset:0;background:url(img/bg.jpg) center/cover;opacity:.16;transition:opacity .4s}
 #stage.empty #bg{opacity:0}
 #stage.empty{background:radial-gradient(ellipse 60% 70% at 72% 55%,#151b2a 0%,#0b0e16 55%,var(--g950) 100%)}
 
 /* ---------- menu (rail) ---------- */
-#menu{position:absolute;left:0;top:0;width:110px;height:1080px;backdrop-filter:blur(20px);background:rgba(5,7,10,.25)}
+#menu{position:absolute;left:0;top:0;width:110px;height:1080px;backdrop-filter:blur(20px)}
 #avatar{position:absolute;left:31px;top:60px;width:48px;height:48px;border-radius:16px;background:url(img/avatar.svg) center/cover}
 #rail{position:absolute;left:0;top:270px;display:flex;flex-direction:column}
 .mi{width:110px;height:90px;display:flex;align-items:center;justify-content:center;position:relative;border-radius:0 20px 20px 0;color:var(--fg2);cursor:pointer;transition:background .2s}
@@ -55,8 +54,8 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
 .flt.focus .chk{border-color:var(--ink)}.flt.focus .chk.on{background:var(--blue);border-color:var(--blue)}
 
 /* ---------- right list ---------- */
-#right{position:absolute;left:840px;top:0;width:1080px;height:1080px;overflow:hidden;-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 140px),transparent 100%);mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 140px),transparent 100%)}
-#list{position:absolute;left:0;top:100px;width:1080px;display:flex;flex-direction:column;gap:32px;transform:translateY(var(--ly,0px));transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+#right{position:absolute;left:820px;top:0;width:1100px;height:1080px;overflow:hidden;-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 140px),transparent 100%);mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 140px),transparent 100%)}
+#list{position:absolute;left:20px;top:100px;width:1080px;display:flex;flex-direction:column;gap:32px;transform:translateY(var(--ly,0px));transition:transform .3s cubic-bezier(.2,.8,.2,1)}
 #list.noanim{transition:none}
 .card{position:relative;width:980px;height:196px;display:flex;align-items:center;gap:32px;padding:8px;border-radius:24px 0 0 24px;flex:none;cursor:pointer}
 .card .poster{position:relative;width:320px;height:180px;border-radius:20px;overflow:hidden;flex:none;background:#000 url(img/poster.jpg) center/cover}
@@ -75,7 +74,7 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
 .card.focus .t{color:var(--fg)}
 .card.dim{opacity:.55}
 .card.focus.dim{opacity:1}
-.card::after{content:"";position:absolute;inset:-4px -4px -4px -4px;border-radius:24px;border:6px solid #000;box-shadow:0 0 0 4px var(--fg);opacity:0;pointer-events:none;transition:opacity .15s}
+.card::after{content:"";position:absolute;left:-6px;top:-6px;bottom:-6px;width:1012px;border-radius:24px;box-shadow:0 0 0 4px var(--fg);opacity:0;pointer-events:none;transition:opacity .15s}
 .card.focus::after{opacity:1}
 .card .chev{position:absolute;right:56px;top:50%;transform:translateY(-50%);width:36px;height:64px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
 .card .chev svg{width:28px;height:28px;fill:none;stroke:var(--fg);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
@@ -232,7 +231,7 @@ function render(){
   const L=leftItems();const fl=$('#filters');
   fl.innerHTML=L.map((f,i)=>{const foc=S.zone==='left'&&i===S.leftIdx;const active=(ep?f[0]===S.season:f[0]===S.filter);
     let right=f[2]==='chk'?`<span class="chk${S.onlyRecorded?' on':''}">${I.check}</span>`:`<span>${S.empty&&f[2]&&!ep?'0 h':f[2]}</span>`;
-    return `<div class="flt${foc?' focus':''}${(!foc&&f[0]==='back')?' soft':''}" data-i="${i}"><span>${f[1]}</span>${right}</div>`}).join('');
+    return `<div class="flt${foc?' focus':''}${(!foc&&S.zone!=='left'&&i===S.leftIdx)?' soft':''}" data-i="${i}"><span>${f[1]}</span>${right}</div>`}).join('');
   fl.querySelectorAll('.flt').forEach(e=>e.onclick=()=>{S.zone='left';S.leftIdx=+e.dataset.i;activate()});
   // right list
   const list=items();const ul=$('#list');
