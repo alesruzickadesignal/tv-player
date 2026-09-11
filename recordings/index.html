@@ -64,7 +64,7 @@ html,body{margin:0;height:100%;background:#0c0d12;color:var(--fg);font-family:Ro
 #list.noanim{transition:none}
 #stage:not([data-zone=right]) #right{opacity:.5}
 .card{position:relative;width:980px;height:196px;display:flex;align-items:center;gap:32px;padding:8px;border-radius:24px 0 0 24px;flex:none;cursor:pointer}
-.card .poster{position:relative;width:320px;height:180px;border-radius:20px;overflow:hidden;flex:none;background:#000 url(img/poster.jpg) center/cover}
+.card .poster{position:relative;width:320px;height:180px;border-radius:20px;overflow:hidden;flex:none;background:#000 center/cover}
 .card .poster::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.15);transition:opacity .2s}
 .card.focus .poster::after{opacity:0}
 .card .ep{position:absolute;left:0;bottom:0;padding:12px 20px;font:400 23px/32px Roboto;color:var(--fg);text-shadow:0 1px 2px rgba(0,0,0,.12),0 1px 3px rgba(0,0,0,.2);background:linear-gradient(to top,rgba(0,0,0,.55),transparent);width:100%}
@@ -189,23 +189,27 @@ $('#rail').innerHTML=MENU.map(m=>`<div class="mi${m[0]==='rec'?' active':''}" da
 /* ---------- data ---------- */
 const SERIES={title:'Hvězdná brána: Atlantida',longTitle:'Hvězdná brána: Atlantida – speciální rozšířená edice s komentářem tvůrců',series:'3 Series',eps:'16 episodes',dur:'3 h 20 min',exp:'6 episodes expires on 22. 2. 2022'};
 const REC=[
-  {id:1,type:'series',title:'Hvězdná brána: Atlantida',m1:['3 Series','16 episodes','3 h 20 min'],m2:'6 episodes expires on 22. 2. 2022',ep:'S01E03'},
-  {id:2,type:'movie',title:'Matrix',m1:['Movie','2 h 16 min'],m2:'Expires on 3. 3. 2022',ep:'',last:true},
-  {id:3,type:'series',title:'Hvězdná brána: SG-1',m1:['2 Series','9 episodes','6 h 45 min'],m2:'Expires on 14. 4. 2022',ep:'S02E01'},
-  {id:4,type:'show',title:'Prostřeno!',m1:['Show','5 episodes','4 h 10 min'],m2:'2 episodes expires on 20. 2. 2022',ep:'',last:true},
-  {id:5,type:'movie',title:'Interstellar',m1:['Movie','2 h 49 min'],m2:'Expires on 28. 3. 2022',ep:''},
-  {id:6,type:'series',title:'Případy 1. oddělení',m1:['1 Series','4 episodes','3 h 50 min'],m2:'Expires on 9. 4. 2022',ep:'S01E04'},
-  {id:7,type:'show',title:'Show Jana Krause',m1:['Show','3 episodes','2 h 30 min'],m2:'1 episode expires on 21. 2. 2022',ep:'',last:true},
-  {id:8,type:'movie',title:'Pelíšky',m1:['Movie','1 h 55 min'],m2:'Expires on 1. 5. 2022',ep:''}
+  {id:1,type:'series',title:'Hvězdná brána: Atlantida',img:'poster.jpg',m1:['3 Series','16 episodes','3 h 20 min'],m2:'6 episodes expires on 22. 2. 2022',ep:'S01E03'},
+  {id:2,type:'movie',title:'Matrix',img:'p1.jpg',m1:['Movie','2 h 16 min'],m2:'Expires on 3. 3. 2022',ep:'',last:true},
+  {id:3,type:'series',title:'The Last of Us',img:'p11.jpg',m1:['2 Series','9 episodes','6 h 45 min'],m2:'Expires on 14. 4. 2022',ep:'S02E01'},
+  {id:4,type:'show',title:'Prostřeno!',img:'p6.jpg',m1:['Show','5 episodes','4 h 10 min'],m2:'2 episodes expires on 20. 2. 2022',ep:'',last:true},
+  {id:5,type:'movie',title:'Interstellar',img:'p2.jpg',m1:['Movie','2 h 49 min'],m2:'Expires on 28. 3. 2022',ep:''},
+  {id:6,type:'movie',title:'Temný rytíř',img:'p5.jpg',m1:['Movie','2 h 32 min'],m2:'Expires on 9. 4. 2022',ep:''},
+  {id:7,type:'show',title:'Show Jana Krause',img:'p10.jpg',m1:['Show','3 episodes','2 h 30 min'],m2:'1 episode expires on 21. 2. 2022',ep:'',last:true},
+  {id:8,type:'movie',title:'Klub rváčů',img:'p4.jpg',m1:['Movie','2 h 19 min'],m2:'Expires on 1. 5. 2022',ep:''},
+  {id:9,type:'movie',title:'Vykoupení z věznice Shawshank',img:'p9.jpg',m1:['Movie','2 h 22 min'],m2:'Expires on 12. 5. 2022',ep:''},
+  {id:10,type:'movie',title:'Schindlerův seznam',img:'p8.jpg',m1:['Movie','3 h 15 min'],m2:'Expires on 18. 5. 2022',ep:''},
+  {id:11,type:'movie',title:'Mortal Kombat',img:'p3.jpg',m1:['Movie','1 h 50 min'],m2:'Expires on 24. 5. 2022',ep:''}
 ];
 const UNAV=[
-  {id:101,title:'Epizoda S01E02',m1:['3 h 20 min'],badge:'Nedostatečná kapacita',ep:'S01E03'},
-  {id:102,title:'Hvězdná brána: Atlantida',m1:['3 h 20 min'],badge:'Ve vyšším balíčku',ep:'S01E03'},
-  {id:103,title:'Epizoda S01E02',m1:['3 h 20 min'],badge:'Nedostatečná kapacita',ep:'S01E03'},
-  {id:104,title:'Epizoda S01E02',m1:['3 h 20 min'],badge:'Nedostatečná kapacita',ep:'S01E03'},
-  {id:105,title:'Epizoda S01E05',m1:['44 min'],badge:'Nedostatečná kapacita',ep:'S01E05'}
+  {id:101,title:'Epizoda S01E02',img:'p11.jpg',m1:['3 h 20 min'],badge:'Nedostatečná kapacita',ep:'S01E02'},
+  {id:102,title:'Hvězdná brána: Atlantida',img:'poster.jpg',m1:['3 h 20 min'],badge:'Ve vyšším balíčku',ep:'S01E03'},
+  {id:103,title:'Cruella',img:'p10.jpg',m1:['2 h 14 min'],badge:'Nedostatečná kapacita',ep:''},
+  {id:104,title:'Raya a drak',img:'p6.jpg',m1:['1 h 47 min'],badge:'Nedostatečná kapacita',ep:''},
+  {id:105,title:'Epizoda S01E05',img:'p7.jpg',m1:['44 min'],badge:'Ve vyšším balíčku',ep:'S01E05'}
 ];
-const EPS=Array.from({length:12},(_,i)=>({id:200+i,title:'Hvězdná brána: Atlantida',desc:'Lorem ipsum dolor sit amet, consectetur adipedf elit. Sed vel risus vehicula, egede c…',m1:['44 min','National Geographic','Po, 22. 12.'],ep:'S01E'+String(i+1).padStart(2,'0'),recorded:i%3!==2}));
+const EPIMG=['poster.jpg','p11.jpg','p3.jpg','p6.jpg','p7.jpg','p2.jpg','p5.jpg','p10.jpg','p4.jpg','p9.jpg','p8.jpg','p1.jpg'];
+const EPS=Array.from({length:12},(_,i)=>({id:200+i,title:'Hvězdná brána: Atlantida',img:EPIMG[i%EPIMG.length],desc:'Lorem ipsum dolor sit amet, consectetur adipedf elit. Sed vel risus vehicula, egede c…',m1:['44 min','National Geographic','Po, 22. 12.'],ep:'S01E'+String(i+1).padStart(2,'0'),recorded:i%3!==2}));
 const FILTERS_REC=[['all','All',''],['movie','Movies','15 h 20 min'],['series','Series','21 h 10 min'],['show','Shows',''],['unavail','Unavailable recordings',''],['last','Last chance','']];
 const SEASONS=[['s1','Serie 1','3 episoded'],['s2','Serie 2','27 episoded'],['s3','Serie 3','1 episode'],['s4','Serie 4','6 episoded'],['s5','Serie 5','12 episoded'],['s6','Serie 6','18 episoded'],['s7','Serie 7','4 episoded']];
 
@@ -249,7 +253,7 @@ function render(){
     const line2=r.m2?`<div class="m"><span>${r.m2}</span></div>`:(r.desc?`<div class="d">${r.desc}</div>`:'');
     const buttons=cov?coverHTML(r):'';
     return `<div class="card${foc?' focus':''}${cov?' covered':''}${(ep&&!r.recorded)?' unrec dim':''}${unav?' dim':''}" data-i="${i}">
-      <div class="poster">${r.badge?`<div class="badge">${I.ban}${r.badge}</div>`:''}${r.ep?`<div class="ep">${r.ep}</div>`:''}</div>
+      <div class="poster" style="background-image:url(img/${r.img||'poster.jpg'})">${r.badge?`<div class="badge">${I.ban}${r.badge}</div>`:''}${r.ep?`<div class="ep">${r.ep}</div>`:''}</div>
       <div class="txt"><div class="t">${t}</div>${r.desc?line2:''}<div class="m">${rec}${meta}</div>${r.m2?line2:''}</div>
       <div class="chev">${I.chev}</div>
       <div class="cover">${buttons}</div></div>`}).join('');
