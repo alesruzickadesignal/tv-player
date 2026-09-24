@@ -1,0 +1,125 @@
+/* === Wireframe obsah: TV homescreen 1920×1080, zmenšený do rámu (--s nastavuje JS) === */
+.browser-content:has(.tvwrap) { padding: 0; min-height: 0; }
+
+/* Ovládání scénáře nad obrazovkou */
+.wf-steps { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 12px; border-bottom: 1px solid #eee; }
+.wf-steps button { border: 1px solid #ccc; background: #fff; color: #333; border-radius: 16px; padding: 6px 12px; font-size: 12px; cursor: pointer; }
+.wf-steps button:hover { background: #eee; }
+.wf-steps button.on { background: #000; border-color: #000; color: #fff; }
+.wf-cap { padding: 10px 12px; border-top: 1px solid #eee; font-size: 13px; color: #333; min-height: 20px; }
+
+/* TV plátno */
+.tvwrap { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; background: #fff; }
+.tv { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform: scale(var(--s, .45)); transform-origin: 0 0; overflow: hidden; background: #fff; color: #000; }
+.scr { display: none; position: absolute; inset: 0; }
+.tv[data-state="a"] .scr[data-s~="a"], .tv[data-state="b"] .scr[data-s~="b"],
+.tv[data-state="c"] .scr[data-s~="c"], .tv[data-state="d"] .scr[data-s~="d"],
+.tv[data-state="e"] .scr[data-s~="e"], .tv[data-state="f"] .scr[data-s~="f"] { display: block; }
+.dim { opacity: .3; }
+
+/* Zavřené menu */
+.rail { position: absolute; left: 0; top: 0; width: 110px; height: 1080px; background: #fff; border-right: 2px solid #eee; z-index: 3; }
+.rail i { position: absolute; left: 35px; width: 40px; height: 40px; border-radius: 10px; background: #ccc; }
+.rail i:nth-child(1) { top: 40px; border-radius: 50%; }
+.rail i:nth-child(2) { top: 190px; } .rail i:nth-child(3) { top: 262px; }
+.rail i:nth-child(4) { top: 334px; } .rail i:nth-child(5) { top: 406px; }
+.rail i:nth-child(6) { top: 478px; } .rail i:nth-child(7) { top: 550px; }
+.rail i:nth-child(8) { top: 622px; }
+.rail i.on { background: #000; }
+
+/* Horní panel (hero) */
+.bd { position: absolute; left: 600px; top: 0; width: 1320px; height: 620px; background: linear-gradient(90deg, #fff 0, #eee 32%); }
+.bd span { position: absolute; right: 48px; top: 40px; font-size: 24px; color: #999; }
+.ht { position: absolute; left: 170px; top: 88px; width: 1150px; font-size: 57px; font-weight: 700; line-height: 68px; }
+.hm { position: absolute; left: 170px; top: 184px; display: flex; gap: 18px; align-items: center; font-size: 23px; color: #666; }
+.hd { position: absolute; left: 170px; top: 238px; width: 920px; font-size: 29px; line-height: 40px; color: #333; }
+.hk { position: absolute; left: 170px; top: 392px; font-size: 23px; color: #666; display: flex; align-items: center; }
+.key { display: inline-block; min-width: 44px; text-align: center; border: 2px solid #666; border-radius: 8px; padding: 0 10px; margin-right: 12px; font-weight: 600; color: #333; font-size: 21px; line-height: 32px; }
+.key + .key { margin-left: -6px; }
+.gap { flex: none; width: 28px; }
+
+/* Řady a karty */
+.row { position: absolute; left: 170px; right: 0; }
+.rh { font-size: 31px; font-weight: 500; line-height: 40px; color: #333; }
+.cards { display: flex; gap: 24px; margin-top: 34px; }
+.c { position: relative; flex: none; }
+.c .im { width: 100%; background: #eee; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 22px; text-align: center; }
+.c .lb { margin-top: 14px; font-size: 23px; line-height: 28px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ch { width: 310px; } .ch .im { height: 196px; }
+.b0 { width: 393px; } .b0 .im { height: 221px; }
+.c.f .im { outline: 6px solid #000; outline-offset: 6px; }
+.c.f .lb { color: #000; font-weight: 600; }
+.c .im.tx { background: #fff; border: 2px solid #ccc; justify-content: flex-start; align-items: flex-end; padding: 20px 24px; font-size: 30px; line-height: 38px; font-weight: 600; color: #000; text-align: left; }
+.more { width: 221px; } .more .im { height: 221px; background: #fff; border: 2px solid #ccc; flex-direction: column; gap: 14px; color: #333; font-size: 23px; }
+.pb { position: absolute; left: 16px; right: 16px; top: 199px; height: 8px; border-radius: 4px; background: #ccc; }
+.pb b { display: block; width: 45%; height: 100%; border-radius: 4px; background: #333; }
+
+/* Štítky */
+.chip { position: absolute; top: 14px; left: 14px; padding: 2px 14px; border-radius: 10px; font-size: 20px; line-height: 30px; font-weight: 600; background: #fff; color: #000; border: 2px solid #000; }
+.chip.imp { background: #000; color: #fff; }
+.chip.st { position: static; display: inline-block; }
+
+/* Anotační značky v obrazovce */
+.mk { position: absolute; z-index: 9; width: 48px; height: 48px; border-radius: 50%; border: 2px solid #999; background: #fff; color: #333; font-size: 25px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+
+/* Stránka Oznámení (stávající) */
+.mmh1 { position: absolute; left: 170px; top: 92px; font-size: 57px; font-weight: 700; }
+.mml { position: absolute; left: 160px; top: 230px; width: 760px; }
+.li { position: relative; display: flex; align-items: center; gap: 26px; height: 144px; margin-bottom: 32px; padding: 8px; border-radius: 18px; }
+.li .th { position: relative; flex: none; width: 227px; height: 128px; border-radius: 16px; background: #eee; }
+.li .th.tx { background: #fff; border: 2px solid #ccc; }
+.li .th .chip { top: 8px; left: 0; font-size: 18px; border-radius: 0 10px 10px 0; }
+.li .tt { font-size: 31px; line-height: 40px; font-weight: 500; color: #333; width: 420px; }
+.li .dot { position: absolute; right: 8px; top: 64px; width: 16px; height: 16px; border-radius: 50%; background: #000; }
+.li.sel { outline: 4px solid #000; }
+.mmd { position: absolute; left: 1045px; top: 100px; width: 755px; }
+.mmd .dh { font-size: 38px; line-height: 48px; font-weight: 700; }
+.mmd .db { margin-top: 32px; height: 423px; border-radius: 20px; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #999; }
+.mmd .dt { margin-top: 32px; font-size: 29px; line-height: 48px; color: #333; }
+.btn { display: inline-flex; align-items: center; height: 56px; padding: 0 24px; border-radius: 16px; font-size: 25px; font-weight: 500; background: #eee; color: #333; margin-top: 28px; }
+.btn.f { background: #000; color: #fff; }
+.sbar { position: absolute; left: 1840px; top: 100px; width: 8px; height: 880px; border-radius: 4px; background: #eee; }
+.sbar b { display: block; height: 260px; border-radius: 4px; background: #666; }
+
+/* Var. 2 — rozbalená karta */
+.xp { display: flex; width: 840px; border-radius: 16px; }
+.xp .im { width: 393px; height: 221px; border-radius: 16px 0 0 16px; }
+.xp .xt { width: 447px; height: 221px; border: 2px solid #ccc; border-left: none; border-radius: 0 16px 16px 0; padding: 16px 24px; background: #fff; }
+.xp.f { outline: 6px solid #000; outline-offset: 6px; }
+.xp.f .im { outline: none; }
+.xh { margin-top: 10px; font-size: 27px; line-height: 34px; font-weight: 600; }
+.xd { margin-top: 6px; font-size: 21px; line-height: 28px; color: #666; }
+.xk { margin-top: 10px; font-size: 20px; color: #666; display: flex; align-items: center; }
+
+/* Var. 3 — bannerová řada */
+.ban { position: relative; display: flex; width: 1630px; height: 300px; border: 2px solid #ccc; border-radius: 20px; overflow: hidden; background: #fff; margin-top: 34px; }
+.ban.f { outline: 6px solid #000; outline-offset: 6px; border-color: #000; }
+.bim { flex: none; width: 533px; height: 100%; background: #eee; display: flex; align-items: center; justify-content: center; color: #999; font-size: 22px; }
+.btx { padding: 36px 44px; width: 1000px; }
+.bh { margin-top: 14px; font-size: 38px; line-height: 48px; font-weight: 700; }
+.bdsc { margin-top: 10px; font-size: 26px; line-height: 36px; color: #333; }
+.bk { margin-top: 22px; font-size: 22px; color: #666; display: flex; align-items: center; }
+.dots { position: absolute; right: 40px; bottom: 30px; display: flex; gap: 10px; align-items: center; font-size: 22px; color: #666; }
+.dots b { width: 14px; height: 14px; border-radius: 50%; background: #ccc; }
+.dots b.on { background: #000; }
+.dots span { margin-left: 8px; }
+
+/* Var. 4 — boční panel */
+.panel { position: absolute; right: 0; top: 0; width: 640px; height: 1080px; background: #fff; border-left: 2px solid #000; padding: 48px 32px; z-index: 4; }
+.panel .pl { font-size: 23px; color: #666; }
+.panel .ph { margin-top: 12px; font-size: 38px; line-height: 48px; font-weight: 700; }
+.panel .pim { margin-top: 24px; height: 324px; border-radius: 16px; background: #eee; display: flex; align-items: center; justify-content: center; color: #999; font-size: 22px; }
+.panel .pt { margin-top: 24px; font-size: 26px; line-height: 38px; color: #333; }
+.qrrow { display: flex; gap: 24px; align-items: center; margin-top: 28px; }
+.qr { flex: none; width: 180px; height: 180px; border: 2px solid #000; border-radius: 12px; background: repeating-linear-gradient(90deg, #fff 0 12px, #ccc 12px 24px); }
+.qrrow div:last-child { font-size: 23px; line-height: 32px; color: #333; }
+.panel .btn { margin-top: 32px; }
+
+/* Shrnutí */
+.sum-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.sum-table th, .sum-table td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #eee; vertical-align: top; }
+.sum-table th { color: #666; font-weight: 600; }
+.sum-table td:first-child { font-weight: 600; color: #000; white-space: nowrap; }
+.stars { white-space: nowrap; letter-spacing: 1px; color: #000; }
+.rec-box { margin-top: 16px; padding: 12px 14px; border: 1px solid #ccc; border-radius: 6px; font-size: 13px; line-height: 1.5; color: #333; }
+.rec-box b { color: #000; }
