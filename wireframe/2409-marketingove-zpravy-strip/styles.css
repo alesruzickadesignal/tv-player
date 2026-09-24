@@ -14,7 +14,8 @@
 .scr { display: none; position: absolute; inset: 0; }
 .tv[data-state="a"] .scr[data-s~="a"], .tv[data-state="b"] .scr[data-s~="b"],
 .tv[data-state="c"] .scr[data-s~="c"], .tv[data-state="d"] .scr[data-s~="d"],
-.tv[data-state="e"] .scr[data-s~="e"], .tv[data-state="f"] .scr[data-s~="f"] { display: block; }
+.tv[data-state="e"] .scr[data-s~="e"], .tv[data-state="f"] .scr[data-s~="f"],
+.tv[data-state="g"] .scr[data-s~="g"], .tv[data-state="h"] .scr[data-s~="h"] { display: block; }
 .dim { opacity: .3; }
 
 /* Zavřené menu */
@@ -26,6 +27,10 @@
 .rail i:nth-child(6) { top: 478px; } .rail i:nth-child(7) { top: 550px; }
 .rail i:nth-child(8) { top: 622px; }
 .rail i.on { background: #000; }
+/* Tečka u profilu (var. 1: nová oznámení od posledního otevření menu / Oznámení) */
+.rail .nd { display: none; position: absolute; left: 60px; top: 30px; width: 26px; height: 26px; border-radius: 50%; background: #000; border: 4px solid #fff; }
+#tv1[data-state="a"] .nd, #tv1[data-state="b"] .nd, #tv1[data-state="g"] .nd { display: block; }
+#tv1[data-state="g"] .rail i.on { background: #ccc; } #tv1[data-state="g"] .rail i:nth-child(6) { background: #000; }
 
 /* Horní panel (hero) */
 .bd { position: absolute; left: 600px; top: 0; width: 1320px; height: 620px; background: linear-gradient(90deg, #fff 0, #eee 32%); }
@@ -123,3 +128,25 @@
 .stars { white-space: nowrap; letter-spacing: 1px; color: #000; }
 .rec-box { margin-top: 16px; padding: 12px 14px; border: 1px solid #ccc; border-radius: 6px; font-size: 13px; line-height: 1.5; color: #333; }
 .rec-box b { color: #000; }
+
+/* Var. 1 — TV program (tečka mimo homescreen) */
+.eh { position: absolute; left: 170px; top: 64px; font-size: 38px; font-weight: 700; }
+.eh span { margin-left: 24px; font-size: 23px; font-weight: 400; color: #666; }
+.er { position: absolute; top: 152px; font-size: 23px; color: #666; }
+.el { position: absolute; left: 170px; width: 224px; height: 108px; border-radius: 12px; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 21px; color: #666; }
+.ep { position: absolute; height: 108px; border-radius: 12px; border: 2px solid #ccc; background: #fff; padding: 0 18px; display: flex; align-items: center; font-size: 23px; color: #333; white-space: nowrap; overflow: hidden; }
+.ep.past { background: #eee; border-color: #eee; }
+.ep.f { outline: 6px solid #000; outline-offset: 4px; color: #000; font-weight: 600; }
+.enow { position: absolute; left: 685px; top: 186px; width: 4px; height: 700px; background: #000; }
+
+/* Var. 1 — otevřené menu */
+.menu { position: absolute; left: 0; top: 0; width: 500px; height: 1080px; background: #fff; border-right: 2px solid #000; z-index: 6; }
+.mi { position: absolute; left: 20px; width: 460px; height: 64px; margin-top: -12px; padding: 0 15px; border-radius: 16px; display: flex; align-items: center; gap: 24px; font-size: 29px; color: #333; }
+.mi i { flex: none; width: 40px; height: 40px; border-radius: 10px; background: #ccc; }
+.mi.f { background: #000; color: #fff; }
+.mi.f i { background: #fff; }
+.mi.prof { height: 88px; }
+.mi.prof i { border-radius: 50%; width: 56px; height: 56px; margin-left: -8px; }
+.mi.prof div { font-size: 29px; font-weight: 600; line-height: 34px; }
+.mi.prof small { display: block; font-size: 20px; font-weight: 400; color: #666; }
+.bdg { margin-left: -8px; min-width: 34px; height: 34px; padding: 0 8px; border-radius: 17px; background: #000; color: #fff; font-size: 20px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
