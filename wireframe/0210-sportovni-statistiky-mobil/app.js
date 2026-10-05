@@ -46,6 +46,8 @@ const bi=(n,s=24)=>RI[n]?ri(n,s):ic(n,s);
 
 /* ---------- data zápasu ---------- */
 const DEV={ios:{w:402,h:874,r:56},and:{w:390,h:844,r:34}};
+const DEVT={ios:{w:820,h:1180,r:24},and:{w:800,h:1280,r:22}};// tablety: iPad Air 11" (pt), Android tablet třídy medium/expanded (dp)
+const dev=()=>(S.form==='tab'?DEVT:DEV)[S.platform];
 const M={league:'Fortuna liga',kick:'18:00',channel:'Prima Sport',
  t:[{name:'Slavia',full:'Slavia Praha',code:'SLA'},{name:'Plzeň',full:'Viktoria Plzeň',code:'PLZ'}],
  ev:[
@@ -80,7 +82,7 @@ const CH=[
 const PROG=[{t:'16:00',n:'Studio Fotbal',d:'Záznam · 120 min'},{t:'18:00',n:'Fotbal: Slavia – Plzeň',d:'Live · 120 min',cur:1,match:1},{t:'20:00',n:'Fotbalový večer',d:'Magazín · 60 min'},{t:'21:00',n:'Hokej: Sparta – Kometa',d:'Záznam · 150 min'},{t:'23:30',n:'Sportovní zprávy',d:'Zprávy · 30 min'}];
 
 /* ---------- stav ---------- */
-const S={platform:'ios',orient:'portrait',scene:'player',tab:2,sub:0,team:0,minute:67,live:67,settings:{ext:true,hide:false,mute:false},revealed:false,
+const S={platform:'ios',form:'phone',orient:'portrait',scene:'player',tab:2,sub:0,team:0,minute:67,live:67,settings:{ext:true,hide:false,mute:false},revealed:false,
  sheet:null,sheetFrom:null,controls:true,toast:null,newEv:false,dimOn:true,idle:false,notes:true,sim:false,panel:null,lpTab:1,playing:true,prevTab:0,catDay:0,dTab:0};
 const DEF=JSON.parse(JSON.stringify(S));
 const hideNow=()=>S.settings.hide&&!S.revealed;
@@ -119,7 +121,7 @@ function evIcon(e){const t=e.type;let i='';
 function statusBar(){const sig='<svg width="18" height="12" viewBox="0 0 18 12" fill="#fff"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>';
  const wifi='<svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><path d="M1 4.2a10 10 0 0 1 14 0"/><path d="M3.6 7a6.3 6.3 0 0 1 8.8 0"/><circle cx="8" cy="10" r="1.1" fill="#fff" stroke="none"/></svg>';
  const bat='<svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x=".5" y=".5" width="22" height="11" rx="3.5" stroke="#fff" opacity=".5"/><rect x="2" y="2" width="19" height="8" rx="2" fill="#fff"/><path d="M24 4v4" stroke="#fff" opacity=".5" stroke-linecap="round"/></svg>';
- return S.platform==='ios'?`<div class="sb"><span>9:41</span><div class="sbi">${sig}${wifi}${bat}</div></div><div class="island"></div>`
+ return S.platform==='ios'?`<div class="sb"><span>9:41</span><div class="sbi">${sig}${wifi}${bat}</div></div>${S.form==='tab'?'':'<div class="island"></div>'}`
   :`<div class="sb"><span>18:32</span><div class="sbi">${wifi}${sig}${bat}</div></div><div class="cam"></div>`}
 const bottomSys=()=>S.platform==='ios'?'<div class="home"></div>':'<div class="anav"><i></i><i></i><i></i></div>';
 const toggle=on=>`<span class="tg ${on?'on':''}"><i></i></span>`;
@@ -136,7 +138,7 @@ function evRow(e,first){const hid=hideNow()&&e.type==='goal';let title,sub='';
  const info=S.scene==='detail'&&!hid;// v detailu jen informace, do videa vede „Přehrát“
  return`<${info?'div':'button'} class="ev${hid?' hid':''}${info?' info':''}"${info?'':` data-act="${hid?'reveal':'jump'}" data-v="${e.min}"`}${first?' data-mk="5"':''}>${evIcon(e)}<span class="min">${e.min}'</span><span class="tx"><b>${title}</b>${sub?`<span>${sub}</span>`:''}</span>${tag}${sc}${hid?'<span class="rv">Zobrazit</span>':''}</${info?'div':'button'}>`}
 function timeline(){const evs=M.ev.filter(e=>e.min<=S.minute).sort((a,b)=>b.min-a.min);
- if(!evs.length)return`<div class="empty" data-mk="13"><div class="ei">${ic('timer',26)}</div><b>Zatím se nic nestalo</b><span>Události zápasu se tu objeví během utkání.</span></div>`;
+ if(!evs.length)return`<div class="empty" data-mk="13"><div class="eill" aria-hidden="true" style="--t:-${Date.now()%9600}ms"><svg class="epitch" viewBox="0 0 176 104" fill="none"><rect x="1" y="1" width="174" height="102" rx="10"/><path d="M88 1v102"/><circle cx="88" cy="52" r="18"/><rect x="1" y="30" width="22" height="44"/><rect x="153" y="30" width="22" height="44"/></svg><i class="ering"></i><i class="ering r2"></i><i class="eh"></i><i class="ea"></i><i class="eshadow"></i><img class="eball" src="img/sp-ball.svg" alt=""></div><b>Zatím se nic nestalo</b><span>Události zápasu se tu objeví během utkání.</span></div>`;
  let h=hideNow()||S.scene==='detail'?'':'<div class="hint2">Klepnutím na událost skočíte na tu chvíli ve videu.</div>';if(hideNow())h+=`<div class="banner" data-mk="11">${ri('eyeOff_a',20)}<div class="tx"><b>Bez spoilerů</b>Skóre a góly jsou skryté, dokud si je nevyžádáte.</div><button data-act="reveal">Zobrazit</button></div>`;
  const g2=evs.filter(e=>e.min>45),g1=evs.filter(e=>e.min<=45);let first=true;
  const rows=g=>g.map(e=>{const r=evRow(e,first);first=false;return r}).join('');
@@ -167,7 +169,8 @@ function progRows(){return PROG.map(p=>`<div class="chrow${p.cur?' cur':''}" dat
 
 /* ---------- přehrávač: na výšku ---------- */
 function seekbar(){const f=clamp(S.minute,0,90)/90*100,b=clamp(S.live,0,90)/90*100,hide=hideNow();
- const ticks=M.ev.filter(e=>e.min<=S.minute&&(e.type==='phase'||(e.type==='goal'&&!hide))).map(e=>`<i class="tick${e.type==='phase'?' n':''}" style="left:${e.min/90*100}%"></i>`).join('');
+ // na ose jen góly (kopačák): Bez spoilerů jen do aktuální pozice, jinak všechny známé až po živý okraj (i před táhlem); klepnutí skočí na gól
+ const ticks=M.ev.filter(e=>e.type==='goal'&&e.min<=(hide?S.minute:S.live)).map(e=>`<i class="gball" data-act="jump" data-v="${e.min}" style="left:${e.min/90*100}%"><img src="img/sp-ball.svg" alt="Gól ${e.min}'"></i>`).join('');
  return`<div class="seekbar" data-act="seek" data-mk="6"><div class="trk"></div><div class="buf" style="width:${b}%"></div><div class="prog" style="width:${f}%"></div>${ticks}${b<100?`<i class="edge" style="left:${b}%"></i>`:''}<i class="knob" style="left:${f}%"></i></div>`}
 function pill(){const st=status(),sc=scoreAt(S.minute);
  if(hideNow()||st.pre)return`<div class="vpill off" data-act="openmatch" data-mk="2">${ri('eyeOff_a',14)}<span>${st.pre?'Výkop '+M.kick:'Výsledek skrytý'}</span></div>`;
@@ -191,19 +194,23 @@ function evToast(e){const T=M.t[e.team]||{};switch(e.type){
 function toast(){const t=S.toast;if(!t)return'';
  if(t.kind==='goal'||t.kind==='ev'){const[a,b]=evToast(t.e);return`<div class="toast" data-mk="12">${evIcon(t.e)}<span class="tx"><b>${a}</b>${b?`<span>${b}</span>`:''}</span></div>`}
  return`<div class="toast plain"><span class="tx"><b>${t.txt}</b></span></div>`}
-function viewPlayer(o){o=o||{};const v=o.variant,d=DEV[S.platform],vh=Math.round(d.w*9/16),ext=S.settings.ext&&!v,tabs=ext?['TV kanály','Pořady','Sportovní statistiky']:['TV kanály','Pořady'],tab=ext?S.tab:Math.min(S.tab,1);
+function viewPlayer(o){o=o||{};const v=o.variant,d=dev(),vh=Math.round(d.w*9/16),ext=S.settings.ext&&!v,tabs=ext?['TV kanály','Pořady','Sportovní statistiky']:['TV kanály','Pořady'],tab=ext?S.tab:Math.min(S.tab,1);
  const dotCls=S.newEv?'dot new':'dot',seg=`<div class="ptabs">${tabs.map((t,i)=>`<button class="chip${tab===i?' on':''}" data-act="tab" data-v="${i}"${i===2?' data-mk="1"':''}>${t}</button>`).join('')}</div>`;// taby přehrávače = Tab base z design systému (jako ve Figmě)
  const body=[chRows,progRows,matchPanel][tab]();const dim=S.dimOn&&S.idle&&tab!==2;
  const strip=v==='strip'?`<div class="strip"><i class="ld"></i><b style="color:var(--success)">ŽIVĚ · 67'</b><b class="sc">SLA 2 : 1 PLZ</b><span class="sp">Průběh · Statistiky · Sestavy</span>${ri('chevR',18)}</div>`:'';
  const msheet=v==='sheet'?`<div class="msheet"><div class="hnd"></div>${matchPanel()}</div>`:'';
- return`<div class="scr ${S.platform}">${statusBar()}<div class="pl${tab===2?' sport':''}" style="--vtop:calc(var(--sbh) + ${vh}px)"><div class="sbspace"></div>${video(vh)}${strip}${seg}<div class="panewrap${dim||v==='sheet'?' dimmed':''}"><div class="pane"${tab===2?' data-mk="7"':''}>${body}</div><div class="dim" data-act="undim"></div></div>${msheet}${bottomSys()}</div>${sheet()}${toast()}</div>`}
+ return`<div class="scr ${S.platform}">${statusBar()}<div class="pl${tab===2?' sport':''}" style="--vtop:calc(var(--sbh) + ${vh}px)"${S.form==='tab'?' data-mk="24"':''}><div class="sbspace"></div>${video(vh)}${strip}${seg}<div class="panewrap${dim||v==='sheet'?' dimmed':''}"><div class="pane"${tab===2?' data-mk="7"':''}>${body}</div><div class="dim" data-act="undim"></div></div>${msheet}${bottomSys()}</div>${sheet()}${toast()}</div>`}
 
 /* ---------- přehrávač: na šířku ---------- */
 function viewSide(){const sk=`<span class="sk" data-act="back10">${ri('m_back',38)}</span><span class="pb" data-act="play">${ri(S.playing?'pause':'play',34)}</span><span class="sk" data-act="fwd10">${ri('m_forward',38)}</span>`;
- return`<div class="scr ${S.platform} ls side"><div class="svid${sideCls()}" data-act="sidetap" style="--fd:-${Math.min(400,Date.now()-(S.sideHidAt||0))}ms"><div class="lvid ph"><span class="vlabel">video 16:9</span><div class="vslot"></div></div>
-  <div class="sctl"><div class="stop"><button class="ib" data-act="rotate">${ri('chevron_down',22)}</button><div class="vtitle"><b>Fotbal: ${M.t[0].name} – ${M.t[1].name}</b><span>${M.channel}</span></div></div><div class="scen">${sk}</div><div class="sbot"><span class="stime">${mmss(S.minute)} / 90:00</span>${seekbar()}</div></div></div>
+ const ctl=`<div class="sctl"><div class="stop"><button class="ib" data-act="rotate">${ri('chevron_down',22)}</button><div class="vtitle"><b>Fotbal: ${M.t[0].name} – ${M.t[1].name}</b><span>${M.channel}</span></div></div><div class="scen">${sk}</div><div class="sbot"><span class="stime">${mmss(S.minute)} / 90:00</span>${seekbar()}</div></div>`,fd=`--fd:-${Math.min(400,Date.now()-(S.sideHidAt||0))}ms`;
+ // tablet na šířku (expanded): supporting pane – video vlevo zůstává plnohodnotné (celé ovládání), pod ním velké skóre; panel vpravo ~30 %
+ const vid=S.form==='tab'?`${statusBar()}<div class="svid tabv${sideCls()}" style="${fd}"><div class="lvid ph" data-act="sidetap"><span class="vlabel">video 16:9</span><div class="vslot"></div>${ctl}</div><div class="tmatch" data-mk="23">${headerCompact()}</div></div>`
+  :`<div class="svid${sideCls()}" data-act="sidetap" style="${fd}"><div class="lvid ph"><span class="vlabel">video 16:9</span><div class="vslot"></div></div>
+  ${ctl}</div>`;
+ return`<div class="scr ${S.platform} ls side">${vid}
   <div class="spanel" data-mk="22"><div class="pane"><div class="mp lpm cmp"><div class="lmtitle">Sportovní statistiky</div>${headerCompact()}${chipsRow(false)}${subContent()}</div></div><button class="gear spx" data-act="panel" data-v="" aria-label="Zavřít">${ri('x_a',20)}</button></div>
-  ${sheet()}${toast()}${S.platform==='ios'?'<div class="home"></div><div class="island-l"></div>':''}</div>`}
+  ${sheet()}${toast()}${S.platform==='ios'?(S.form==='tab'?'<div class="home"></div>':'<div class="home"></div><div class="island-l"></div>'):''}</div>`}
 function viewLandscape(){const open=S.panel,st=S.settings;if(open==='match'&&st.ext)return viewSide();
  const btn=(i,t,act,v)=>`<button class="lbtn" data-act="${act}"${v!==undefined?` data-v="${v}"`:''}>${bi(i,i==='chart'?24:26)}${t?`<span>${t}</span>`:''}</button>`;
  const mt=st.ext?`<button class="lbtn" data-act="panel" data-v="match" data-mk="14">${ic('chart',24)}<span>Sportovní statistiky</span>${status().live?'<i class="ld"></i>':''}</button>`:'';
@@ -218,7 +225,7 @@ function viewLandscape(){const open=S.panel,st=S.settings;if(open==='match'&&st.
   <div class="lcenter"><span class="sk" data-act="back10">${ri('m_back',44)}</span><span class="pb" data-act="play">${ri(S.playing?'pause':'play',40)}</span><span class="sk" data-act="fwd10">${ri('m_forward',44)}</span></div>
   <span class="ltime">${mmss(S.minute)} / 90:00</span><button class="cb lmin" data-act="rotate">${ri('minimize',18)}</button><div class="lseek">${seekbar()}</div>
   <div class="lbar">${btn('list','Kanály','panel','channels')}${btn('list_right','Pořady','panel','programs')}${mt}${btn('gauge','','noop')}${btn('audio','','noop')}${btn('subtitle','','noop')}${btn('record','','noop')}${btn('lock','','noop')}</div></div>
- ${S.platform==='ios'?(open?overlayIos():''):panelL+panelR}${sheet()}${toast()}${S.platform==='ios'?'<div class="home"></div><div class="island-l"></div>':''}</div>`}
+ ${S.platform==='ios'?(open?overlayIos():''):panelL+panelR}${sheet()}${toast()}${S.platform==='ios'?(S.form==='tab'?'<div class="home"></div>':'<div class="home"></div><div class="island-l"></div>'):''}</div>`}
 
 function hCards(kind){return kind==='channels'
  ?CH.map(c=>`<div class="hcard"><span class="lg"><img src="../../app/img/logos/${c.logo}.png" alt="${c.name}"></span><span class="cn">${c.name}</span><span class="pt">${c.now}</span><span class="pr"><i style="width:${c.p*100}%"></i></span>${c.match?liveLine(c):`<span class="tm">${c.time}</span>`}</div>`).join('')
@@ -271,7 +278,7 @@ const NOTES={
 3:['Hlavička zápasu','Stav se řídí pozicí přehrávání, ne reálným časem: ŽIVĚ · 67\' / pozadu za živým jen 34\' bez tečky + odkaz „↻ Živě · 67\'“ (vrátí na živý okraj a ukáže, o kolik je divák pozadu) / ZÁZNAM / UKONČENO. Soutěž · fáze vpravo. Bez technických pojmů jako start over / timeshift. Texty z Personigo (`sports_statistics.*`).'],
 4:['Podzáložky + nastavení','Průběh / Statistiky / Sestavy jako chipy (stejný vzor jako v Detailu). Na TV jsou to taby; na dotyku přidat swipe doleva/doprava. Ozubené kolo = Nastavení zápasu (sheet). Chipy zůstávají při scrollu přilepené, hlavička odroluje.'],
 5:['Průběh','Nejnovější nahoře, skupiny po poločasech, stejná anatomie řádku jako na TV: ikona · minuta · akce · hráč · asistence · tag týmu · průběžné skóre u gólu. Klepnutí na řádek = skok ve videu na tu chvíli (jako OK na TV); seznam se pak ořízne na pozici přehrávání.'],
-6:['Značky na seekbaru','Góly (a poločas) jen před aktuální pozicí = příznak `SPOILER` z manifestu. Klepnutí na značku = skok. Při „Bez spoilerů“ se góly neukážou. Precedent: „actual start marker“ 2×12 dp na seekbaru. Bílá čárka = živý okraj.'],
+6:['Góly na seekbaru','Jen góly, jako malý míč 14 px přímo na ose (jako klíčové momenty). Normálně jsou vidět všechny známé góly až po živý okraj, i ty za táhlem — divák výsledek zná. V režimu „Bez spoilerů“ jen góly před aktuální pozicí, takže nic neprozradí (příznak `SPOILER` z manifestu). Klepnutí na míč = skok na gól. Bílá čárka = živý okraj.'],
 7:['Zatemnění spodní části po 10 s','Dnes se spodní část portrétu po 10 s nečinnosti ztlumí (Android `PORTRAIT_METADATA_DIM_DELAY`, iOS `PlaylistDimmingManager`, překryv 85 %). Záložka Sportovní statistiky je z toho **vyjmutá** — čte se bez dotyku a data se mění živě. Zkuste v ovládání zapnout „Zatemňování po 10 s“ a přepnout na TV kanály.'],
 8:['Statistiky','Hodnota · popisek · hodnota a dvoubarevný pruh (domácí vlevo). Pořadí jako na TV: Držení míče, Střely na bránu, Střely mimo, Rohy, Fauly, dál ostatní. Hodnoty se mění s pozicí přehrávání (okna `matchstats` v manifestu).'],
 9:['Sestavy','Přepínač týmů místo ‹ › (na dotyku větší cíl). Formace + hřiště, pak hráči: jméno · post, věk · země · číslo, odehráno · zákroky · karty. Fotky hráčů backend zatím nedořešil (Timeline spec) → fallback číslo dresu.'],
@@ -284,6 +291,8 @@ const NOTES={
 17:['Štítek „Statistiky“','Štítek jako jiné štítky (Nahrávka, Nedostupné…): pořad má sportovní data. Nese text, ne jen barvu.'],
 18:['Detail: záložka Sportovní statistiky','Chip taby v Detailu jsou už samy záložky, proto uvnitř žádné další pilulky: jedna stránka se sekcemi Průběh (jen góly a karty), Statistiky (5 hlavních) a Sestavy (hřiště). „Celý průběh / Všechny statistiky / Celá sestava“ otevře celou obrazovku v detailu (bez videa, zpět na detail); do přehrávače vede jen „Přehrát“, které je po odscrollování plovoucí dole. Události v detailu jsou jen informace. Skóre je jen v hero (bez duplicitní karty). Před zápasem jen čas výkopu a sestavy; „Bez spoilerů“ schová průběh i skóre v hero.'],
 22:['Na šířku: video se zmenší','Jako na TV: panel vyjede zprava (360 px + safe zóna) a video se plynule zmenší vlevo, takže ho nic nezakrývá (YouTube to tak dělá u chatu). Telefon je širší než 16:9, video tak ztratí jen část velikosti. Ve zmenšeném videu je jen titulek, ±10 s, play/pauza a osa; spodní lišta se vrátí po zavření panelu (✕ v řádku s pilulkami). Obsah panelu je stejný jako na výšku, jeden sloupec.'],
+23:['Tablet na šířku (supporting pane)','Material 3 „expanded“ (≥ 840 dp) a iPad v režimu regular: statistiky jsou doplněk k videu, proto vzor supporting pane — video vlevo zhruba 70 %, panel vpravo 380 (≈ 30 %), mezera 24. Na rozdíl od telefonu se video nezmenší na náhled: je dost velké, takže si nechá celé ovládání (titulek, ±10 s, osa s góly), které po 3 s zmizí. Volné místo pod videem zabere velké skóre se stavem a soutěží; v panelu proto hlavička se skóre není. Stavový řádek 24, spodní okraj iPad 20 / Android 24.'],
+24:['Tablet na výšku','Material 3 „medium“ (600–839 dp) a iPad na výšku: rozložení zůstává jako v aplikaci na telefonu — video 16:9 přes celou šířku, pod ním taby a obsah (ověřeno ve zdrojáku: iOS i Android mají na tabletu stejný přehrávač, jen větší miniplayer 440×248 / 319×179). Okraje 24. Sestavy jdou do dvou sloupců: hřiště vlevo zůstává přilepené, hráči vpravo, takže kompaktní hřiště není potřeba. Oznámení a nastavení nejsou přes celou šířku (max. ~440 / 600).'],
 21:['Skóre + pilulky','Přepínač TV kanály | Pořady | Sportovní statistiky zůstává. Velká karta se skóre je nahrazená kompaktním řádkem (loga, skóre, stav), který je spolu s pilulkami přilepený nahoře. Řádek se skóre odděluje obě řady pilulek, takže nesplývají, a skóre je vidět i při scrollu (jako sbalená hlavička ve FotMob).'],
 19:['Navigace platforem','iOS: plovoucí tab bar (Domů, TV kanály, Program, Nahrávky, Videotéka). Android V2: spodní navigace 48 dp s ikonami ze serveru; Android V1 má šuplík — otázka, jestli ho řešit.']};
 const CAPS={player:'Video je ukázkový veřejný stream (Red Bull TV), se zápasem nesouvisí; data zápasu jsou simulovaná. Přehrávač na výšku. Klikněte na záložky, chipy, ozubené kolo, řádky průběhu; tažením seekbaru měníte pozici přehrávání, tlačítkem vlevo spustíte simulaci zápasu.',
@@ -303,10 +312,12 @@ function attachVideo(scr){if(!vid)return;const slot=$('.vslot',scr);if(slot){slo
 // hřiště v sestavě zůstává přilepené pod hlavičkou; klepnutí na tečku posune seznam k hráči
 function paneOf(n){let p=n&&n.parentElement;while(p&&!/(auto|scroll)/.test(getComputedStyle(p).overflowY))p=p.parentElement;return p}
 // po odscrollování se hřiště zmenší do kompaktní lišty (víc místa pro seznam); práh s hysterezí, ať to neposkakuje
-function syncMini(){$$('#screen .mp.cmp').forEach(mp=>{const lul=$('.lu .lul',mp),tsw=$('.lu .tsw',mp),stk=$('.stk',mp);if(!lul||!tsw)return;const mini=lul.classList.contains('mini');
+function syncMini(){$$('#screen .mp.cmp').forEach(mp=>{if(S.form==='tab'&&S.orient!=='landscape'&&!$('#screen .ls')){const l=$('.lu .lul',mp);if(l)l.classList.remove('mini');S.luMini=false;return}const lul=$('.lu .lul',mp),tsw=$('.lu .tsw',mp),stk=$('.stk',mp);if(!lul||!tsw)return;const mini=lul.classList.contains('mini');
  const hd=stk||$('.chips',mp);const ref=hd?hd.getBoundingClientRect().bottom:paneOf(lul).getBoundingClientRect().top;// na šířku (boční panel) není přilepená hlavička → okraj panelu
  const d=tsw.getBoundingClientRect().bottom-ref;// přepínač týmů zajel pod hlavičku = seznam se scrolluje
  const want=mini?d<24:d<-4;if(want!==mini){lul.classList.toggle('mini',want);S.luMini=want}})}
+// nadpis poločasu dostane pozadí hlavičky jen když je opravdu přilepený (jinak by byl vidět jako pruh na přechodu pozadí)
+function syncGh(){$$('#screen .mp.cmp').forEach(mp=>{const t=parseFloat(mp.style.getPropertyValue('--stk'))||0;$$('.hs>.gh',mp).forEach(g=>{const p=paneOf(g);if(!p)return;const top=g.getBoundingClientRect().top-p.getBoundingClientRect().top;g.classList.toggle('stuck',p.scrollTop>0&&top<=t+1)})})}
 function stickyLineup(scr){$$('.mp.cmp',scr).forEach(mp=>{const stk=$('.stk',mp),lul=$('.lu .lul',mp),ch=$('.chips',mp),hd=stk||(ch&&getComputedStyle(ch).position==='sticky'?ch:null);
  if(hd){const cs=getComputedStyle(hd);mp.style.setProperty('--stk',hd.offsetHeight+'px');mp.style.setProperty('--stkbg',cs.backgroundImage!=='none'?cs.backgroundImage:cs.backgroundColor)}// nadpisy poločasů se lepí pod hlavičku se stejným pozadím
  if(!lul)return;
@@ -315,12 +326,12 @@ function stickyLineup(scr){$$('.mp.cmp',scr).forEach(mp=>{const stk=$('.stk',mp)
   if(pane){const r=row.getBoundingClientRect(),l=lul.getBoundingClientRect(),p=pane.getBoundingClientRect();if(r.top<l.bottom||r.bottom>p.bottom)pane.scrollTop+=r.top-l.bottom-6}}}}
 function render(o){o=o||{};const scr=$('#screen'),SC=['.pane','.lovbody','.hstrip','.pbody'],vk=S.scene+(S.scene==='detail'&&S.dFull!=null?'-'+S.dFull:''),same=scr.dataset.scene===vk,keep=SC.map(q=>{const e=same&&$(q,scr);return e?[e.scrollTop,e.scrollLeft]:null});scr.dataset.scene=vk;
  S.platform=S.platform==='and'?'and':'ios';
- const land=S.orient==='landscape'&&S.scene==='player',d=DEV[S.platform];
+ const land=S.orient==='landscape'&&S.scene==='player',d=dev();
  const w=land?d.h:d.w,h=land?d.w:d.h;
  scr.style.width=w+'px';scr.style.height=h+'px';scr.style.borderRadius=(d.r-10)+'px';$('#device').style.borderRadius=d.r+'px';
  const v={player:land?viewLandscape:viewPlayer,catalog:viewCatalog,channels:viewChannels,detail:viewDetail}[S.scene];
- holdVideo();scr.innerHTML=v();attachVideo(scr);scr.classList.toggle('anim',!!S.anim);S.anim=false;
- SC.forEach((q,i)=>{const e=$(q,scr);if(e&&keep[i]){e.scrollTop=keep[i][0];e.scrollLeft=keep[i][1]}});stickyLineup(scr);if(S.dRestore!=null){const b=$('.pbody',scr);if(b)b.scrollTop=S.dRestore;S.dRestore=null}syncDplay();
+ holdVideo();scr.innerHTML=v();{const r0=scr.firstElementChild;if(r0)r0.classList.toggle('tab',S.form==='tab')}attachVideo(scr);scr.classList.toggle('anim',!!S.anim);S.anim=false;
+ SC.forEach((q,i)=>{const e=$(q,scr);if(e&&keep[i]){e.scrollTop=keep[i][0];e.scrollLeft=keep[i][1]}});stickyLineup(scr);syncGh();if(S.dRestore!=null){const b=$('.pbody',scr);if(b)b.scrollTop=S.dRestore;S.dRestore=null}syncDplay();
  $$('[data-mk]',scr).forEach(e=>{if(getComputedStyle(e).position==='static')e.style.position='relative'});
  $('#stagewrap').classList.toggle('mk-on',S.notes);document.body.classList.toggle('mk-on',S.notes);
  fit(w,h);if(!o.noCtl)renderCtl();renderNotes();
@@ -333,7 +344,7 @@ function renderNotes(){const el=$('#notes');const nums=[...new Set($$('[data-mk]
  $$('li[data-n]',el).forEach(li=>{li.onmouseenter=()=>$$('[data-mk="'+li.dataset.n+'"]',$('#screen')).forEach(e=>e.classList.add('hl-note'));li.onmouseleave=()=>$$('.hl-note').forEach(e=>e.classList.remove('hl-note'))})}
 function renderCtl(){const el=$('#ctl'),seg=(k,opts)=>`<div class="seg2">${opts.map(o=>`<button class="${S[k]===o[0]?'on':''}" data-c="${k}" data-v="${o[0]}"${o[2]?' disabled':''}>${o[1]}</button>`).join('')}</div>`;
  const nonPlayer=S.scene!=='player';
- el.innerHTML=`<h3>Zařízení</h3>${seg('platform',[['ios','iPhone'],['and','Android']])}<h3>Orientace</h3>${seg('orient',[['portrait','Na výšku'],['landscape','Na šířku',nonPlayer]])}
+ el.innerHTML=`<h3>Zařízení</h3>${seg('platform',[['ios',S.form==='tab'?'iPad':'iPhone'],['and','Android']])}<h3>Velikost</h3>${seg('form',[['phone','Telefon'],['tab','Tablet']])}<h3>Orientace</h3>${seg('orient',[['portrait','Na výšku'],['landscape','Na šířku',nonPlayer]])}
  <h3>Scéna</h3>${seg('scene',[['player','Přehrávač'],['catalog','Katalog'],['channels','Kanály'],['detail','Detail']])}
  <h3>Stav zápasu</h3><div class="btnrow">${[['Před výkopem',-8,-8],['12\'',12,12],['Poločas',45,45],['67\' živě',67,67],['Pozadu 34\'',34,67],['Konec 90\'',90,90]].map(p=>`<button data-preset="${p[1]},${p[2]}">${p[0]}</button>`).join('')}</div>
  <div class="rngl" style="margin-top:10px"><span>Pozice přehrávání</span><b id="l-minute">${Math.floor(S.minute)}'</b></div><input class="rng" type="range" min="-10" max="90" step="1" value="${Math.floor(S.minute)}" data-r="minute">
@@ -378,14 +389,14 @@ function act(a,ds,el){const pPrev=S.panel;switch(a){
  render()}
 let hashView=null;
 function fromHash(){const h=location.hash.replace(/^#/,'');if(!h)return;h.split('&').forEach(kv=>{const[k,v]=kv.split('='),n=+v;
- switch(k){case'platform':S.platform=v==='and'?'and':'ios';break;case'orient':S.orient=v;break;case'scene':S.scene=v;break;case'tab':S.tab=n;break;case'sub':S.sub=n;break;case'team':S.team=n;break;
+ switch(k){case'platform':S.platform=v==='and'?'and':'ios';break;case'form':S.form=v==='tab'?'tab':'phone';break;case'orient':S.orient=v;break;case'scene':S.scene=v;break;case'tab':S.tab=n;break;case'sub':S.sub=n;break;case'team':S.team=n;break;
   case'minute':S.minute=n;break;case'live':S.live=n;break;case'hide':S.settings.hide=v==='1';break;case'ext':S.settings.ext=v!=='0';break;case'mute':S.settings.mute=v==='1';break;
   case'sheet':S.sheet=v||null;break;case'sheetfrom':S.sheetFrom=v;break;case'panel':S.panel=v||null;break;case'lptab':S.lpTab=n;break;case'notes':S.notes=v!=='0';break;
   case'solo':document.body.classList.add('solo');break;case'dim':S.dimOn=v!=='0';break;case'idle':S.idle=v==='1';S.idleHold=true;break;case'controls':S.controls=v!=='0';break;case'dtab':S.dTab=n;break;case'dfull':S.dFull=S.sub=n;break;
   case'toast':if(v==='goal')S.toast={kind:'ev',e:M.ev[5]};if(v==='card')S.toast={kind:'ev',e:M.ev[6]};if(v==='sub')S.toast={kind:'ev',e:M.ev[4]};break;case'view':hashView=v;break;case'scroll':S.scrollTo=n;break;}})}
 function syncDplay(){const b=$('#screen .dpage .pbody'),f=$('#screen .dpage .dplay'),pb=$('#screen .dpage .playbtn');if(!b||!f||!pb)return;
  S.dplayOn=pb.getBoundingClientRect().bottom<b.getBoundingClientRect().top+56;f.classList.toggle('on',S.dplayOn)}
-function init(){fromHash();setupVideo();$('#screen').addEventListener('scroll',syncDplay,true);$('#screen').addEventListener('scroll',syncMini,true);
+function init(){fromHash();setupVideo();$('#screen').addEventListener('scroll',syncDplay,true);$('#screen').addEventListener('scroll',syncMini,true);$('#screen').addEventListener('scroll',syncGh,true);
  $('#screen').addEventListener('click',e=>{if(e.target.classList&&e.target.classList.contains('lov')){act('panel',{v:''});return}const el=e.target.closest('[data-act]');if(!el)return;act(el.dataset.act,el.dataset,el)});
  $('#screen').addEventListener('pointermove',()=>{if(S.idle)resetIdle()});
  $('#screen').addEventListener('pointerdown',e=>{resetIdle();const sb=e.target.closest('.seekbar');if(!sb)return;e.preventDefault();
@@ -407,7 +418,7 @@ function init(){fromHash();setupVideo();$('#screen').addEventListener('scroll',s
 
 /* ---------- alternativy umístění ---------- */
 function renderAlts(){const host=$('#alts');if(host.dataset.done)return;host.dataset.done=1;
- const mk=(s,fn)=>{const save=JSON.parse(JSON.stringify(S));Object.assign(S,s);const d=DEV[S.platform];const html=fn();Object.assign(S,save);
+ const mk=(s,fn)=>{const save=JSON.parse(JSON.stringify(S));Object.assign(S,s);const d=dev();const html=fn();Object.assign(S,save);
   return`<div class="frame"><div class="device" style="border-radius:${d.r*.6}px;padding:6px"><div class="screen" style="width:${d.w}px;height:${d.h}px;border-radius:${(d.r-10)}px;transform:scale(.7);transform-origin:top left;margin:0 ${-d.w*.3}px ${-d.h*.3}px 0;pointer-events:none">${html}</div></div></div>`};
  const base={platform:'and',scene:'player',orient:'portrait',minute:67,live:67,controls:true,sheet:null,toast:null,idle:false,settings:{ext:true,hide:false,mute:false},revealed:false,sub:0};
  const A=mk({...base,tab:2},()=>viewPlayer());

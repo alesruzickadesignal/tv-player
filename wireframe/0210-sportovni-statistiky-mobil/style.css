@@ -630,7 +630,99 @@ body.solo .layout{padding:0;gap:0}
 .lmh .st,.dst{gap:9px}
 /* přilepený nadpis poločasu pod hlavičkou (pilulkami); další poločas ho vytlačí */
 .hs{display:flex;flex-direction:column;gap:8px}
-.mp.cmp .hs>.gh{position:sticky;top:var(--stk,0);z-index:4;margin:-8px -12px -6px;padding:12px 14px 6px;background:var(--stkbg,var(--bg-player))}
+.mp.cmp .hs>.gh{position:sticky;top:var(--stk,0);z-index:4;margin:-8px -12px -6px;padding:12px 14px 6px;background:transparent}
+.mp.cmp .hs>.gh.stuck{background:var(--stkbg,var(--bg-player))}
 .lmatch .hs{display:contents}
 /* vybraný hráč: číslo na fotce v barvě týmu jako jeho tečka na hřišti (spojí řádek s hřištěm bez dalšího přebarvení) */
 .pr2.on .av b{background:var(--brand)}.pr2.on .av.away b{background:var(--error)}
+/* góly na ose: malý míč přímo na tracku (jako klíčové momenty), nad ním jen knob */
+.seekbar .gball{position:absolute;bottom:2px;width:14px;height:14px;margin-left:-7px;border-radius:50%;box-shadow:0 0 0 1.5px rgba(0,0,0,.45),0 1px 3px rgba(0,0,0,.5);z-index:1}
+.seekbar .gball img{display:block;width:14px;height:14px}
+.seekbar .knob{z-index:2}
+
+/* ================= TABLET (iPad 820×1180 pt, Android 800×1280 dp) ================= */
+/* stavový řádek bez výřezu; iPad nemá Dynamic Island */
+.scr.ios.tab,.scr.and.tab{--sbh:24px}
+.ls.ios.tab{--sl:24px;--sr:0px;--sbb:20px}.ls.and.tab{--sl:24px;--sr:0px;--sbb:24px}
+
+/* --- na výšku (M3 medium): stejné rozložení jako telefon, okraje 24 --- */
+.scr.tab .ptabs{padding:8px 24px}
+.scr.tab:not(.ls) .mp{padding-left:24px;padding-right:24px}
+.scr.tab:not(.ls) .mp.cmp .stk{margin:-8px -24px 0;padding:8px 24px 10px}
+.scr.tab:not(.ls) .mp.cmp .hs>.gh{margin:-8px -24px -6px;padding:12px 26px 6px}
+/* sestavy ve dvou sloupcích: hřiště vlevo přilepené, hráči vpravo */
+.scr.tab:not(.ls) .mp.cmp .lst.lu{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:24px;row-gap:12px;align-items:start}
+.scr.tab:not(.ls) .mp.cmp .lst.lu>.tsw{grid-column:1/-1}
+.scr.tab:not(.ls) .mp.cmp .lu .lul{margin:0;padding:0 0 8px;box-shadow:none;background:none!important}
+.scr.tab:not(.ls) .mp.cmp .lu .pitch{height:auto;aspect-ratio:366/150}
+.scr.tab:not(.ls) .mp.cmp .lu .lur>.gh{padding-top:0}
+/* oznámení a nastavení nejsou přes celou šířku */
+.scr.tab .toast{left:calc(50% - 220px);right:calc(50% - 220px)}
+.scr.tab .sheet{left:50%;right:auto;width:600px;margin-left:-300px}
+.scr.ios.tab .sheet{bottom:24px;border-radius:24px;padding-bottom:12px}
+/* detail: větší hero, okraje 24, Průběh a Statistiky vedle sebe */
+.scr.tab .dpage .hero{height:320px}
+.scr.tab .dtl{padding:18px 24px 0}.scr.tab .dtabs{padding-left:24px;padding-right:24px}
+.scr.tab .dpage .mini{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:32px;padding:0 24px 24px;align-items:start}
+.scr.tab .dpage .mini>.dst,.scr.tab .dpage .mini>.dlu,.scr.tab .dpage .mini>.empty{grid-column:1/-1}
+.scr.tab .dlu .lst.lu{max-width:560px}.scr.tab .dlu .pitch{height:auto;aspect-ratio:366/150}
+.scr.tab .appbar{padding:0 24px}
+
+/* --- na šířku (M3 expanded): supporting pane – video ~70 % vlevo, panel 380 vpravo --- */
+.ls.side.tab{--pw:380px}
+.ls.side.tab .svid{top:calc(var(--sbh) + 12px);bottom:var(--sbb);left:var(--sl);right:calc(var(--pw) + var(--sr) + 24px);flex-direction:column;justify-content:flex-start;align-items:stretch;gap:20px;cursor:default}
+.ls.side.tab .lvid{position:relative;width:100%;flex:none;cursor:pointer}
+.ls.side.tab .sctl{display:block;position:absolute;inset:0;background:rgba(0,0,0,.35);pointer-events:auto;transition:opacity .3s}
+.ls.side.tab .stop{display:flex;left:12px;right:12px;top:12px}.ls.side.tab .scen .sk{display:grid}.ls.side.tab .sbot{display:block;left:16px;right:16px;bottom:10px}
+.ls.side.tab .scen .pb{width:64px;height:64px;background:none}.ls.side.tab .scen .pb svg{width:30px}
+.ls.side.tab .stop .vtitle b{font-size:16px;line-height:22px}.ls.side.tab .stop .vtitle span{font-size:13px}
+.ls.side.tab .svid.ctl-off .sctl{opacity:0;pointer-events:none}
+.ls.side.tab .svid.ctl-off .scen .pb{opacity:1}
+.ls.side.tab .svid.ctl-fade .sctl{animation:pbOut .4s ease-out forwards;animation-delay:var(--fd,0ms)!important;pointer-events:none}
+.ls.side.tab .svid.ctl-fade .scen .pb{animation:none}
+/* velké skóre pod videem */
+.ls.side.tab .tmatch .lmh{flex-wrap:wrap;gap:12px;padding:0 4px;row-gap:4px}
+.ls.side.tab .tmatch .lmh .crest{--s:40px!important}
+.ls.side.tab .tmatch .lmh .nm{display:block;font:500 20px/28px Roboto}
+.ls.side.tab .tmatch .lmh .score{font:700 36px/44px Roboto}
+.ls.side.tab .tmatch .lmh .st{font-size:14px}
+.ls.side.tab .tmatch .lmh .lg2{display:block;flex-basis:100%;margin:0;font:400 14px/20px Roboto;color:var(--fg2)}
+/* panel: pod stavovým řádkem, bez vlastní hlavičky se skóre (je pod videem) */
+.ls.side.tab .spanel .pane{top:var(--sbh)}
+.ls.side.tab .spanel .spx{top:calc(var(--sbh) + 8px)}
+.ls.side.tab .spanel .lmh{display:none}
+.scr.tab .dtl .playbtn{max-width:360px}.scr.tab .dtl .acts{max-width:480px}/* na tabletu tlačítko nepřes celou šířku */
+/* tablet na šířku: stejné mezery 24 — vlevo od videa, mezi videem a panelem, uvnitř panelu vlevo i vpravo */
+.ls.side.tab .spanel .mp{padding-left:24px;padding-right:24px}
+.ls.side.tab .spanel .mp.cmp .stk,.ls.side.tab .spanel .mp.cmp .lu .lul{margin-left:-24px;margin-right:-24px;padding-left:24px;padding-right:24px}
+.ls.side.tab .spanel .spx{right:24px}
+/* tablet na šířku: sportovní pozadí (bg-wrapper s rozmazanými skvrnami) přes celou obrazovku, i za zmenšeným playerem */
+.ls.side.tab{background:var(--sport-bg)}
+.ls.side.tab .svid{background:transparent}
+.ls.tab .sheet{margin-left:0;width:600px}/* na šířku už středí translateX(-50%), margin by posunul podruhé */
+/* sportovní pozadí místo černé: na šířku (video zmenšené, telefon i tablet) a pruh pod stavovým řádkem u sportovní záložky */
+.ls.side{background:var(--sport-bg)}
+.pl.sport .sbspace{background:var(--sport-top)}
+/* iPad na výšku: video začíná na 43 — mezera nad ikonami stavového řádku (15) je stejná jako mezi ikonami a videem; aplikace má dnes pevnou mezeru 60 pt (portraitSpacer) — návrh ji zmenšuje */
+.scr.ios.tab .pl{--sbh:43px}
+
+/* prázdný průběh: ilustrace — míč poskakuje na středovém bodě, ze středu se šíří vlnky, hráči čekají na výkop */
+.eill{position:relative;width:176px;height:104px;margin:0 auto 14px}
+.epitch{position:absolute;inset:0;width:100%;height:100%}
+.epitch rect,.epitch path,.epitch circle{stroke:rgba(255,255,255,.14);stroke-width:1.5}
+.eill .ering{position:absolute;left:50%;top:50%;width:36px;height:36px;margin:-18px 0 0 -18px;border-radius:50%;border:1.5px solid rgba(1,163,254,.5);animation:ering 2.4s ease-out infinite;opacity:0}
+.eill .ering.r2{animation-delay:1.2s}
+.eill .eh,.eill .ea{position:absolute;top:50%;width:10px;height:10px;margin-top:-5px;border-radius:50%;animation:esway 3.2s ease-in-out infinite}
+.eill .eh{left:56px;background:var(--brand);box-shadow:0 0 0 3px rgba(1,163,254,.25)}
+.eill .ea{right:56px;background:var(--error);box-shadow:0 0 0 3px rgba(240,68,56,.25);animation-delay:-1.6s}
+.eill .eball{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;animation:ebounce 1.2s cubic-bezier(.5,0,.5,1) infinite}
+.eill .eshadow{position:absolute;left:50%;top:50%;width:18px;height:5px;margin:8px 0 0 -9px;border-radius:50%;background:rgba(0,0,0,.45);animation:eshadow 1.2s cubic-bezier(.5,0,.5,1) infinite}
+@keyframes ebounce{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-16px) rotate(180deg)}}
+@keyframes eshadow{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(.55);opacity:.35}}
+@keyframes ering{0%{transform:scale(.6);opacity:0}15%{opacity:.8}100%{transform:scale(2.6);opacity:0}}
+@keyframes esway{0%,100%{transform:translateY(-6px)}50%{transform:translateY(6px)}}
+@media (prefers-reduced-motion:reduce){.eill *{animation:none!important}.eill .ering{opacity:.4}}
+/* ilustrace prázdného průběhu: fáze animací z reálného času (--t), takže překreslení obrazovky animaci nerestartuje */
+.eill .ering{animation-delay:var(--t)}.eill .ering.r2{animation-delay:calc(var(--t) + 1.2s)}
+.eill .eh{animation-delay:var(--t)}.eill .ea{animation-delay:calc(var(--t) - 1.6s)}
+.eill .eball,.eill .eshadow{animation-delay:var(--t)}
