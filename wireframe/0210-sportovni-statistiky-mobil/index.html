@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sportovní statistiky — mobil · IPTV-6465</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=1006o">
+</head>
+<body>
+
+<header class="top">
+  <div><b>Sportovní statistiky — mobil (telefon)</b><span class="sub">IPTV-6465 · koncept v kódu · 2. 10. 2026 · data jsou vymyšlená</span></div>
+  <span class="rec">★ Doporučeno: třetí záložka „Sportovní statistiky“ pod videem</span>
+</header>
+
+<nav class="tabs">
+  <button class="on" data-view="v-proto">Prototyp</button>
+  <button data-view="v-alt">Alternativy umístění</button>
+  <button data-view="v-sum">Shrnutí a otevřené otázky</button>
+</nav>
+
+<!-- ===== PROTOTYP ===== -->
+<div class="view layout on" id="v-proto">
+  <aside class="ctl" id="ctl"></aside>
+  <section class="stagewrap" id="stagewrap">
+    <div class="stage" id="stage"><div class="device" id="device"><div class="screen" id="screen"></div></div></div>
+    <div class="cap" id="cap"></div>
+  </section>
+  <aside class="notes" id="notes"></aside>
+</div>
+
+<!-- ===== ALTERNATIVY ===== -->
+<div class="view" id="v-alt">
+  <div class="doc"><div class="in">
+    <h2>Tři způsoby, jak ukázat statistiky v portrétu</h2>
+    <p>Rozhodnutí je o tom, kam v portrétu statistiky patří. Všechny varianty používají stejný obsah panelu (hlavička, Průběh / Statistiky / Sestavy, Nastavení) — liší se vstupem a tím, co dělají se seznamem kanálů.</p>
+    <div class="alts" id="alts"></div>
+    <h3>Proč A</h3>
+    <ul class="l">
+      <li>Appka už stejný vzor používá: pod videem je přepínač záložek a obsah pod ním (<code>PlayerPortraitMetadata</code> na Androidu, switcher v <code>ChannelListView</code> na iOS). Nová záložka je jedna položka navíc, ne nový prvek.</li>
+      <li>Na šířku sedí na stávající dvojici panelů Kanály / Pořady — pravý panel dostane přepínač.</li>
+      <li>Video zůstává celé vidět a panel je v dosahu palce.</li>
+      <li>B (sheet) by přidal druhý sheet vedle Nastavení přehrávače a nový vzor gest; C (proužek) bere 48 px výšky a stejně potřebuje panel pro rozbalení.</li>
+    </ul>
+  </div></div>
+</div>
+
+<!-- ===== SHRNUTÍ ===== -->
+<div class="view" id="v-sum">
+  <div class="doc"><div class="in">
+    <h2>Sportovní statistiky na telefonu — shrnutí návrhu</h2>
+    <p>IPTV-6465 „[UI][UX] športové štatistiky pre mobil a tablet“. Tento koncept řeší <b>telefon</b> (iOS i Android); tablet navrhuji řešit navazujícím krokem (viz konec). Všechna jména, skóre a statistiky v prototypu jsou vymyšlená, rozložení a texty odpovídají TV panelu a mobilním appkám.</p>
+
+    <h3>Doporučení</h3>
+    <p>Statistiky zůstávají <b>v přehrávači</b>. V portrétu přibude třetí záložka <b>„Sportovní statistiky“</b> (stejně jako tlačítko na TV) v přepínači pod videem (TV kanály | Pořady | Sportovní statistiky); na šířku třetí tlačítko „Sportovní statistiky“ vedle Kanály a Pořady (Android: pravý panel 373 dp s přepínačem Pořady | Sportovní statistiky; iOS: třetí záložka stávajícího overlaye). Obsah panelu je 1:1 s TV (hlavička zápasu, Průběh / Statistiky / Sestavy, Nastavení), takže se sdílí texty i logika. Na videu je navíc malý skórový pill jako zkratka.</p>
+
+    <h3>Z čeho vycházím</h3>
+    <ul class="l">
+      <li><b>Zdroják mobilních appek</b> (apps/android, apps/apple-v2): portrétní přehrávač = video 16:9 + přepínač 46 px + seznam; na šířku Android dva boční panely (Kanály vlevo, Pořady vpravo, 373 dp), iOS jeden celoobrazovkový blurovaný overlay s přepínačem; spodní lišta kapslí 42 dp na obou; nastavení přehrávače je sheet s vnořenými sheety; spodní část portrétu se po 10 s nečinnosti zatemní. Sport v mobilních appkách zatím neexistuje.</li>
+      <li><b>Figma</b>: Android Mobile (Player New UI), iOS – liquid glass, Second screens set (tokeny), TV panel „sport - update“.</li>
+      <li><b>Backend</b> (Confluence DEV): Timeline service + Metaprofile Feed; data jako tdata manifest s <code>refreshInterval</code> a příznakem <code>SPOILER</code> u událostí; obě appky umí tdata číst (náhledy na seekbaru).</li>
+      <li><b>TV prototyp sportovního režimu</b>: chování „Rozšířené info“ a „Bez spoilerů“.</li>
+    </ul>
+
+    <h3>Mapování TV → mobil</h3>
+    <table>
+      <tr><th>TV panel (640 px vpravo)</th><th>Mobil, na výšku</th><th>Mobil, na šířku</th></tr>
+      <tr><td>Hlavička zápasu</td><td>Karta nad chipy, scrolluje s obsahem</td><td>Stejná karta (Android panel 373 dp; iOS overlay: vlevo hlavička + chipy, vpravo seznam)</td></tr>
+      <tr><td>Taby Průběh / Statistiky / Sestavy</td><td>Chipy (+ swipe mezi nimi)</td><td>Chipy</td></tr>
+      <tr><td>Přepínač týmů ‹ ›</td><td>Dvoutlačítkový přepínač (větší cíl)</td><td>Totéž</td></tr>
+      <tr><td>Ozubené kolo → Nastavení</td><td>Sheet jako Nastavení přehrávače + položka „Sportovní statistiky“ v hlavním sheetu</td><td>Totéž</td></tr>
+      <tr><td>Fokus, OK = skok na událost</td><td>Klepnutí na řádek = skok ve videu</td><td>Totéž</td></tr>
+      <tr><td>Gólový toast</td><td>Banner nad videem (iOS) / snackbar (Android), 5 s</td><td>Totéž</td></tr>
+      <tr><td>Zpět / Zavřít</td><td>Přepnout záložku; zpět zavře sheet</td><td>Swipe doprava nebo klepnutí do videa</td></tr>
+    </table>
+
+    <h3>Pozice přehrávání je zdroj pravdy</h3>
+    <p>Hlavička, průběh, statistiky i oznámení se řídí <b>pozicí přehrávání</b>, ne živým časem. Při start over / timeshift / záznamu se ukazuje stav v té minutě a pozdější události se nezobrazí — spoilery se tím nedějí „z principu“. Stavy v hlavičce: <code>ŽIVĚ · 67'</code>, pozadu za živým jen <code>34'</code> + odkaz <code>↻ Živě · 67'</code>, <code>ZÁZNAM · 34'</code>, <code>UKONČENO</code>, před výkopem <code>PŘED ZÁPASEM</code>. V prototypu to zkoušíte seekbarem nebo posuvníky vlevo.</p>
+
+    <h3>Bez spoilerů — co se kde skryje</h3>
+    <table>
+      <tr><th>Místo</th><th>Chování</th></tr>
+      <tr><td>Pill na videu</td><td>„Výsledek skrytý“ (oko)</td></tr>
+      <tr><td>Hlavička zápasu</td><td>„– : –“</td></tr>
+      <tr><td>Průběh</td><td>Góly jako „Gól · skryto“ s tlačítkem Zobrazit; ostatní události zůstávají; skóre u řádků pryč</td></tr>
+      <tr><td>Seekbar</td><td>Bez značek gólů (poločas zůstává)</td></tr>
+      <tr><td>Oznámení</td><td>Žádné gólové oznámení</td></tr>
+      <tr><td>Seznamy, katalog, EPG</td><td>„Zápas probíhá“ místo skóre</td></tr>
+      <tr><td>Statistiky, sestavy</td><td>Beze změny (otevřené: karty a VAR jsou taky spoilery?)</td></tr>
+    </table>
+
+    <h3>Platformní rozdíly</h3>
+    <ul class="l">
+      <li><b>iOS:</b> Dynamic Island a home indicator; plovoucí tab bar (Domů, TV kanály, Program, Nahrávky, Videotéka) na seznamech; sheet s větším radiusem. Na šířku je obsah „Kanály / Pořady“ celoobrazovkový overlay (<code>contentInfoOverlay</code>, blur, přepínač max 420, vodorovný pás karet) — Zápas je jeho třetí záložka.</li>
+      <li><b>Android:</b> V2 má spodní navigaci 48 dp s ikonami ze serveru, V1 postranní šuplík; na šířku dva boční panely (373 dp); Material bottom sheet (horní radius 12 dp, handle, řádky <code>ActionItem</code>); zpět zavírá sheet → panel → fullscreen.</li>
+      <li><b>Společné:</b> portrétní rozložení (video 16:9, přepínač 46 px, seznam), spodní lišta kapslí 42 dp na šířku, nastavení jako sheet s vnořenými sheety, zatemnění po 10 s.</li>
+    </ul>
+
+    <h3>Co z kódu plyne</h3>
+    <ul class="l">
+      <li><b>Android:</b> další záložka v <code>ChannelsViewModel.tabs</code> (<code>PlayerPortraitMetadata</code>), nový panel, tlačítko v <code>fullscreenDefaultLeftBottomButtons</code>, pravý panel s přepínačem, položka v <code>PlayerOptionsSheet</code>, nový tdata konzument vedle <code>seekbarpreview</code>.</li>
+      <li><b>iOS:</b> třetí hodnota <code>ContentListType</code> a přepočet přepínače v <code>NativePlayer2ContentRowView</code> (dnes dvoustavový, indikátor napevno půl šířky), třetí záložka overlaye, tlačítko v <code>LandscapeOptionsBarView</code>, položka v <code>PlayerMoreOptionsRootSheetPanel</code> / <code>PlayerOptionsSheetPanel</code>, parser tdata (dnes <code>TimeDataParserExtension</code>).</li>
+      <li><b>Zatemnění po 10 s:</b> záložka Sportovní statistiky z něj musí být vyjmutý (jinak se statistiky ztlumí při čtení).</li>
+      <li><b>Data:</b> URL manifestu přes AppAPI (GraphQL), obnova podle <code>refreshInterval</code> (10 s v živém zápase).</li>
+    </ul>
+
+    <h3>Otevřené otázky</h3>
+    <ul class="l">
+      <li>Záložky pod videem musí mít šířku podle textu — „Sportovní statistiky“ se do třetiny šířky nevejde (Android <code>SecondaryTabRow</code> je dnes stejnoměrný, iOS indikátor napevno půl šířky).</li>
+      <li>Kde bude „Bez spoilerů“: jen v panelu, nebo i v Nastavení aplikace, aby fungoval v seznamech a Detailu? Jaký je default?</li>
+      <li>Platí odkrytí spoileru jen pro relaci, nebo vypíná režim (na TV ho vypíná)?</li>
+      <li>Ukazovat skóre v seznamech kanálů, katalogu Sport a EPG, nebo jen v přehrávači?</li>
+      <li>Android V1 (šuplík) dělat také, nebo jen V2?</li>
+      <li>Které události jsou spoiler (karty, VAR)? Rozhoduje Metaprofile Feed.</li>
+      <li>Přetoky EPG: zápas přeteče slot a aplikace přepne pořad — nedořešeno ani v backendu.</li>
+      <li>Fotky hráčů: v Timeline service zatím nedořešené; fallback je číslo dresu.</li>
+      <li>Push oznámení mimo přehrávač (AppNotify je podle specifikace až další fáze).</li>
+    </ul>
+
+    <h3>Další kroky</h3>
+    <ul class="l">
+      <li>Odladit tento koncept v kódu (umístění, spoilery, texty).</li>
+      <li>Tablet: stálý pravý sloupec vedle videa jako TV panel; v portrétu stejný panel pod videem.</li>
+      <li>Převod do Figmy: Segment-nav (3 položky), hlavička zápasu, řádek průběhu, řádek statistiky, řádek hráče, sheet; tokeny viz <code>design-system/mobile/DESIGN.md</code>.</li>
+    </ul>
+  </div></div>
+</div>
+
+<div id="vhold" style="position:fixed;left:-9999px;top:0;width:320px;height:180px;overflow:hidden"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
+<script src="icons.js?v=1006o"></script>
+<script src="app.js?v=1006o"></script>
+</body>
+</html>

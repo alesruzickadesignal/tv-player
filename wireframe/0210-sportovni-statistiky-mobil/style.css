@@ -1,0 +1,636 @@
+/* Sportovní statistiky — mobil (IPTV-6465). Tokeny odpovídají design-system/mobile/DESIGN.md (Second screens set). */
+:root{
+  --bg-base:#14161f; --bg-player:#05070a; --bg-raised:#1b1e29; --bg-raised2:#262c3b;
+  --bg-seg:rgba(52,60,78,.32); --bg-active:#eaecf2; --bg-subtle:rgba(234,236,242,.10); --bg-action:rgba(234,236,242,.06);
+  --brand:#01a3fe; --brand-600:#0181cb; --brand-dk:#0b4f7c; --success:#12b76a; --error:#f04438; --warn:#f5c518;
+  --fg1:rgba(255,255,255,.95); --fg2:rgba(255,255,255,.75); --fg3:rgba(255,255,255,.55);
+  --border:rgba(255,255,255,.16); --modal:#1b1e29; --scrim:rgba(0,0,0,.6);
+  --mk:#ffd84d;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font:400 14px/1.4 Roboto,system-ui,sans-serif;background:#eceef2;color:#1b1e29;display:flex;flex-direction:column;overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+ul,ol{list-style:none}
+
+/* ---------- stránka ---------- */
+.top{flex:none;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:10px 20px;background:#fff;border-bottom:1px solid #dcdfe6}
+.top b{font-size:16px}.top .sub{color:#6b7280;margin-left:10px;font-size:13px}
+.top .rec{font-size:13px;background:#e8f7ee;color:#0b6b3a;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.tabs{flex:none;display:flex;gap:4px;padding:0 16px;background:#fff;border-bottom:1px solid #dcdfe6}
+.tabs button{padding:11px 14px;font-weight:500;color:#6b7280;border-bottom:2px solid transparent}
+.tabs button.on{color:#0181cb;border-color:#0181cb}
+.view{display:none;flex:1;min-height:0}.view.on{display:flex}
+.layout{gap:16px;padding:16px;align-items:stretch}
+.ctl,.notes{flex:none;overflow:auto;background:#fff;border:1px solid #dcdfe6;border-radius:12px;padding:14px}
+.ctl{width:292px}.notes{width:340px}
+.ctl h3,.notes h3{font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:#6b7280;margin:14px 0 8px}
+.ctl h3:first-child,.notes h3:first-child{margin-top:0}
+.seg2{display:flex;background:#eef0f4;border-radius:8px;padding:2px;gap:2px}
+.seg2 button{flex:1;padding:6px 8px;border-radius:6px;font-size:13px;color:#374151}
+.seg2 button.on{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.12);font-weight:500;color:#111}
+.seg2 button[disabled]{opacity:.4;cursor:not-allowed}
+.btnrow{display:flex;flex-wrap:wrap;gap:6px}
+.btnrow button{padding:6px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff}
+.btnrow button:hover{background:#f3f4f6}.btnrow button.on{background:#0181cb;border-color:#0181cb;color:#fff}
+.chk{display:flex;align-items:flex-start;gap:8px;margin:6px 0;font-size:13px;cursor:pointer}
+.chk input{margin-top:3px}.chk small{display:block;color:#6b7280;font-size:12px}
+.rng{width:100%;margin:4px 0}.rngl{display:flex;justify-content:space-between;font-size:12px;color:#6b7280}
+.hint{font-size:12px;color:#6b7280;margin-top:6px}
+.stagewrap{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;overflow:hidden;position:relative}
+.stage{transform-origin:top center;flex:none}
+.cap{margin-top:10px;max-width:640px;text-align:center;font-size:13px;color:#374151;min-height:38px;padding:0 8px}
+.notes li{display:flex;gap:10px;padding:8px 6px;border-radius:8px;font-size:13px;line-height:1.4}
+.notes li:hover{background:#fff8d6}
+.notes li>b{flex:none;width:22px;height:22px;border-radius:50%;background:var(--mk);color:#222;font-size:12px;display:grid;place-items:center}
+.notes li strong{display:block;font-weight:600}
+.notes .none{color:#6b7280;font-size:13px}
+.q li{display:block;padding:6px 0 6px 14px;position:relative;font-size:13px}.q li::before{content:'?';position:absolute;left:0;color:#b45309;font-weight:700}
+
+/* ---------- zařízení ---------- */
+.device{position:relative;background:#000;padding:10px;box-shadow:0 24px 60px rgba(0,0,0,.32),inset 0 0 0 2px #2a2d36}
+.screen{position:relative;overflow:hidden;background:var(--bg-base);color:var(--fg1);font-family:Roboto,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.scr{position:absolute;inset:0;display:flex;flex-direction:column;user-select:none}
+.scr.ios{--sbh:54px;--navh:0px}.scr.and{--sbh:24px;--navh:48px}
+.ic{display:block;flex:none}
+.ph{background-image:linear-gradient(to top right,transparent calc(50% - .5px),rgba(255,255,255,.10) 50%,transparent calc(50% + .5px)),linear-gradient(to bottom right,transparent calc(50% - .5px),rgba(255,255,255,.10) 50%,transparent calc(50% + .5px))}
+
+/* stavový řádek */
+.sb{position:absolute;left:0;right:0;top:0;height:var(--sbh);display:flex;justify-content:space-between;z-index:60;pointer-events:none;color:#fff}
+.ios .sb{padding:18px 30px 0 48px;font:600 16px/20px Roboto}
+.and .sb{padding:0 16px;align-items:center;font:500 13px/16px Roboto}
+.sbi{display:flex;gap:6px;align-items:center}.ios .sbi{padding-right:2px}
+.island{position:absolute;top:11px;left:50%;width:124px;height:36px;margin-left:-62px;border-radius:20px;background:#000}
+.cam{position:absolute;top:6px;left:50%;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:#000}
+.home{position:absolute;left:50%;bottom:8px;width:136px;height:5px;margin-left:-68px;border-radius:3px;background:rgba(255,255,255,.9);z-index:70;pointer-events:none}
+.anav{flex:none;height:48px;background:#000;display:flex;align-items:center;justify-content:center;gap:76px;color:#fff;opacity:.9}
+.anav i{display:block;width:14px;height:14px;border:2px solid #fff;border-radius:2px}.anav i:nth-child(2){border-radius:50%;width:16px;height:16px}.anav i:nth-child(3){border:0;width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-right:14px solid #fff;border-radius:0}
+
+/* ---------- přehrávač: na výšku ---------- */
+.pl{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg-player)}
+.sbspace{flex:none;height:var(--sbh);background:#000}
+.video{position:relative;flex:none;width:100%;height:var(--vh);background:#232a38;overflow:hidden}
+.vlabel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:11px;letter-spacing:1px;color:rgba(255,255,255,.26);text-transform:uppercase}
+.vctl{position:absolute;inset:0;background:rgba(0,0,0,.4);transition:opacity .2s}
+.ctl-off .vctl,.ctl-off .seekbar{opacity:0;pointer-events:none}
+.vtop{position:absolute;left:6px;right:8px;top:8px;display:flex;align-items:flex-start;gap:4px}
+.vtitle{flex:1;min-width:0;padding-top:1px}
+.vtitle b{display:block;font:500 14px/20px Roboto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vtitle span{display:block;font:400 12px/16px Roboto;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib{width:36px;height:36px;display:grid;place-items:center;color:#fff;flex:none}
+.cb{width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.4);display:grid;place-items:center;color:#fff;flex:none}
+.vcenter{position:absolute;left:0;right:0;top:0;bottom:12px;display:flex;align-items:center;justify-content:center;gap:56px}
+.sk{position:relative;display:grid;place-items:center;color:#fff}.sk b{position:absolute;font:700 9px/1 Roboto;top:50%;left:50%;transform:translate(-50%,-44%)}
+.vtime{position:absolute;left:12px;bottom:18px;font:500 12px/16px Roboto;color:#fff}
+.vfull{position:absolute;right:12px;bottom:20px}
+.vpill{position:absolute;left:50%;transform:translateX(-50%);bottom:42px;display:flex;align-items:center;gap:7px;height:28px;padding:0 12px;border-radius:14px;background:rgba(0,0,0,.58);font:700 12px/16px Roboto;white-space:nowrap;cursor:pointer}
+.vpill .sc{font-size:14px}.vpill .mn{font-weight:500;color:var(--fg2)}
+.vpill.off{font-weight:500}
+.ld{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--success);flex:none}
+.seekbar{position:absolute;left:0;right:0;bottom:0;height:22px;cursor:pointer;z-index:5}
+.seekbar .trk{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(255,255,255,.14)}
+.seekbar .buf{position:absolute;left:0;bottom:0;height:4px;background:rgba(255,255,255,.38)}
+.seekbar .prog{position:absolute;left:0;bottom:0;height:4px;background:var(--brand)}
+.seekbar .knob{position:absolute;bottom:-6px;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:var(--brand)}
+.seekbar .tick{position:absolute;bottom:6px;width:3px;height:10px;margin-left:-1.5px;border-radius:2px;background:#fff}
+.seekbar .tick.n{height:8px;opacity:.5}
+.seekbar .edge{position:absolute;bottom:0;width:2px;height:12px;margin-left:-1px;background:#fff}
+.segwrap{flex:none;height:46px;padding:8px;background:var(--bg-player)}
+.seg{height:30px;border-radius:15px;background:var(--bg-seg);display:flex;padding:2px;overflow:hidden}
+.seg button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:13px;font:600 14px/20px Roboto;color:#fff}
+.seg button.on{background:var(--bg-active);color:#000}
+.seg .dot{width:7px;height:7px;border-radius:50%;background:var(--success)}.seg .dot.new{background:var(--error)}
+.panewrap{position:relative;flex:1;min-height:0;background:var(--bg-player)}
+.pane{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden}
+.pane::-webkit-scrollbar{width:0}
+.dim{position:absolute;inset:0;background:rgba(5,7,10,.85);opacity:0;pointer-events:none;transition:opacity .3s;z-index:3}
+.panewrap.dimmed .dim{opacity:1;pointer-events:auto}
+
+/* seznamy (kanály, pořady) */
+.chrow{display:flex;gap:12px;align-items:center;min-height:72px;padding:6px 12px}
+.chrow.cur{background:var(--bg-active);color:#1b1e29;border-radius:12px;margin:2px 8px;padding:6px 8px}
+.chrow .lg{width:100px;height:60px;border-radius:12px;background:linear-gradient(#e9eff7,#cdd8e8);display:grid;place-items:center;color:#334155;font:700 12px Roboto;flex:none;text-align:center;line-height:1.1}
+.chrow .tx{flex:1;min-width:0}
+.chrow .cn{display:flex;justify-content:space-between;font:400 12px/16px Roboto;color:var(--fg2)}
+.chrow.cur .cn,.chrow.cur .tm{color:#4b5262}
+.chrow .tx>span{display:block}.chrow .tx>.cn{display:flex;justify-content:space-between}.chrow .pt{font:500 14px/20px Roboto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chrow .pr{height:3px;background:rgba(255,255,255,.18);margin-top:3px}.chrow.cur .pr{background:rgba(0,0,0,.18)}
+.chrow .pr i{display:block;height:100%;background:var(--brand)}
+.chrow .tm{font:400 12px/16px Roboto;color:var(--fg3);margin-top:2px}
+.live-line{display:flex;align-items:center;gap:6px;margin-top:3px;font:700 12px/16px Roboto}
+.live-line .mn{font-weight:500;color:var(--fg3)}.chrow.cur .live-line .mn{color:#4b5262}
+.badge{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 7px;border-radius:6px;background:var(--bg-subtle);font:500 11px/16px Roboto;color:var(--fg1)}
+.chrow.cur .badge{background:rgba(0,0,0,.08);color:#1b1e29}
+.ghd{padding:14px 16px 4px;font:700 12px/16px Roboto;letter-spacing:.8px;color:var(--fg3);text-transform:uppercase}
+
+/* ---------- panel Zápas ---------- */
+.mp{padding:8px 12px 28px;display:flex;flex-direction:column;gap:12px}
+.mh{background:var(--bg-raised);border-radius:16px;padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.mh .st{display:flex;align-items:center;gap:6px;font:700 12px/16px Roboto;letter-spacing:.3px}
+.mh .st .sp{flex:1;text-align:right;font-weight:400;color:var(--fg3);letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mh .st .go{color:var(--brand);font-weight:500;letter-spacing:0;white-space:nowrap}
+.mh .tm{display:flex;align-items:center;gap:8px}
+.mh .nm{flex:1;min-width:0;font:500 16px/20px Roboto}.mh .nm.r{text-align:right}
+.mh .score{font:700 28px/32px Roboto;white-space:nowrap}
+.crest{width:var(--s);height:var(--s);border-radius:50%;background:var(--bg-raised2);border:1px solid rgba(255,255,255,.22);display:grid;place-items:center;font:700 calc(var(--s)*.3)/1 Roboto;color:var(--fg1);flex:none}
+.chips{display:flex;justify-content:space-between;align-items:center;gap:8px;position:sticky;top:0;z-index:6;background:var(--bg-player);padding:8px 12px;margin:-8px -12px}
+.chips .l{display:flex;gap:8px;overflow:hidden}
+.chip{height:32px;padding:0 16px;border-radius:16px;background:var(--bg-subtle);font:500 14px/32px Roboto;color:var(--fg1);white-space:nowrap}
+.chip.on{background:var(--bg-active);color:#1b1e29}
+.gear{width:36px;height:36px;border-radius:50%;background:var(--bg-subtle);display:grid;place-items:center;flex:none}
+.gear.on{background:var(--bg-active);color:#1b1e29}
+.lst{display:flex;flex-direction:column;gap:8px}
+.gh{font:700 12px/16px Roboto;letter-spacing:.8px;color:var(--fg3);padding:4px 2px 0}
+.ev{display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 12px 8px 10px;border-radius:12px;background:var(--bg-raised);cursor:pointer;text-align:left;width:100%}
+.ev:active{background:var(--bg-raised2)}
+.evi{width:32px;height:32px;border-radius:10px;background:var(--bg-subtle);display:grid;place-items:center;flex:none}
+.evi .card{width:12px;height:16px;border-radius:2px}
+.evi .var{font:700 9px/1 Roboto;border:1px solid rgba(255,255,255,.8);border-radius:4px;padding:2px 3px}
+.ev .min{font:700 14px/20px Roboto;width:34px;flex:none}
+.ev .tx{flex:1;min-width:0}.ev .tx b{display:block;font:500 14px/20px Roboto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev .tx span{display:block;font:400 12px/16px Roboto;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tag{flex:none;font:700 11px/16px Roboto;padding:1px 6px;border:1px solid rgba(255,255,255,.55);border-radius:6px}
+.scp{flex:none;font:700 12px/16px Roboto;padding:3px 8px;border-radius:6px;background:var(--bg-active);color:#1b1e29}
+.ev.hid .tx b{color:var(--fg2)}
+.ev .rv{flex:none;font:500 12px/16px Roboto;color:var(--brand);padding:4px 8px;border-radius:8px;background:rgba(1,163,254,.14)}
+.banner{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:rgba(1,163,254,.12);border:1px solid rgba(1,163,254,.35)}
+.banner .tx{flex:1;font:400 13px/18px Roboto;color:var(--fg1)}.banner .tx b{display:block;font-weight:600}
+.banner button{flex:none;font:600 13px/16px Roboto;padding:8px 12px;border-radius:10px;background:var(--bg-active);color:#1b1e29}
+.empty{display:flex;flex-direction:column;align-items:center;gap:6px;padding:36px 20px;text-align:center;color:var(--fg2)}
+.empty b{font:500 16px/22px Roboto;color:var(--fg1)}.empty span{font-size:13px;line-height:18px;color:var(--fg3)}
+.empty .ei{width:56px;height:56px;border-radius:50%;background:var(--bg-subtle);display:grid;place-items:center;margin-bottom:6px}
+.sr{background:var(--bg-raised);border-radius:12px;padding:10px 14px 12px}
+.sr .vals{display:flex;align-items:center;gap:8px}
+.sr .vals b{width:52px;font:700 14px/20px Roboto}.sr .vals b:last-child{text-align:right}
+.sr .vals span{flex:1;text-align:center;font:400 12px/16px Roboto;color:var(--fg2)}
+.sr .bar{display:flex;gap:2px;height:4px;margin-top:7px;border-radius:2px;overflow:hidden}
+.sr .bar i{display:block;height:100%;min-width:2px}.sr .bar i:first-child{background:var(--brand)}.sr .bar i:last-child{background:var(--brand-dk)}
+.tsw{display:flex;height:34px;padding:2px;border-radius:17px;background:var(--bg-seg)}
+.tsw button{flex:1;border-radius:15px;font:600 14px/30px Roboto;color:#fff}.tsw button.on{background:var(--bg-active);color:#000}
+.form{font:500 12px/16px Roboto;color:var(--brand);padding:2px}
+.pitch{position:relative;height:178px;border-radius:12px;background:#16301f;overflow:hidden}
+.pitch .ln{position:absolute;border:1px solid rgba(255,255,255,.25)}
+.pitch .dt{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:#fff;color:#1b1e29;display:grid;place-items:center;font:700 10px/1 Roboto}
+.pitch .dt.c{background:var(--warn)}
+.pr2{display:flex;align-items:center;gap:12px;padding:10px 12px 10px 10px;border-radius:12px;background:var(--bg-raised)}
+.pr2 .ph{width:48px;height:48px;border-radius:12px;background-color:#2a303d;display:grid;place-items:center;font:700 14px Roboto;color:rgba(255,255,255,.5);flex:none}
+.pr2 .tx b{display:block;font:500 14px/20px Roboto}.pr2 .tx span{display:block;font:400 12px/16px Roboto;color:var(--fg2)}.pr2 .tx span+span{color:var(--fg3)}
+
+/* sheet */
+.scrim{position:absolute;inset:0;background:var(--scrim);z-index:80}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--modal);border-radius:12px 12px 0 0;z-index:90;padding-bottom:calc(var(--navh) + 18px);box-shadow:0 -8px 30px rgba(0,0,0,.4)}
+.ios .sheet{border-radius:28px 28px 0 0;padding-bottom:36px}
+.sheet .hnd{width:32px;height:4px;border-radius:2px;background:rgba(255,255,255,.4);margin:10px auto 6px}
+.sheet .hd{display:flex;align-items:center;gap:4px;padding:2px 8px 10px 16px}
+.sheet .hd b{flex:1;font:600 16px/24px Roboto}
+.sheet .hd .ib{width:40px;height:40px}
+.sheet hr{border:0;border-top:1px solid var(--border);opacity:.6}
+.ai{display:flex;align-items:center;gap:14px;min-height:56px;padding:8px 16px;width:100%;text-align:left}
+.ai .ico{color:var(--fg2);flex:none}.ai .t{flex:1;font:500 14px/20px Roboto}.ai .v{color:var(--fg2);font-size:13px;margin-right:2px}
+.ai .t small{display:block;font:400 12px/16px Roboto;color:var(--fg2);margin-top:2px}
+.tg{position:relative;width:48px;height:28px;border-radius:14px;background:rgba(255,255,255,.25);flex:none;transition:background .15s}
+.tg i{position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .15s}
+.tg.on{background:var(--brand)}.tg.on i{left:22px}
+.toast{position:absolute;left:10px;right:10px;top:calc(var(--sbh) + 8px);z-index:85;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:rgba(27,30,41,.94);box-shadow:0 8px 24px rgba(0,0,0,.45);animation:tin .25s ease-out}
+.toast .evi{background:rgba(255,255,255,.12)}.toast .tx{flex:1;min-width:0}.toast .tx b{display:block;font:700 14px/18px Roboto}.toast .tx span{display:block;font:400 12px/16px Roboto;color:var(--fg2)}
+.toast .go{font:600 13px/16px Roboto;color:var(--brand);padding:6px 4px;flex:none}
+.toast.plain{padding:12px 14px}.toast.plain .tx b{font-weight:500}
+@keyframes tin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+
+/* ---------- přehrávač: na šířku ---------- */
+.ls{background:#000}
+.lvid{position:absolute;top:0;bottom:0;left:50%;aspect-ratio:16/9;transform:translateX(-50%);background:#232a38}
+.lctl{position:absolute;inset:0;background:rgba(0,0,0,.4);transition:opacity .2s}
+.ctl-off .lctl{opacity:0;pointer-events:none}
+.lpan-open .lctl{background:transparent}
+.ltitle{position:absolute;left:24px;top:14px;display:flex;gap:6px;align-items:flex-start}
+.ltitle .vtitle{padding-top:2px}.ltitle .vtitle b{font-size:16px;line-height:22px}
+.lcast{position:absolute;right:24px;top:14px}
+.lcenter{position:absolute;inset:0 0 40px;display:flex;align-items:center;justify-content:center;gap:130px}
+.lslide{position:absolute;top:110px;width:4px;height:92px;border-radius:2px;background:rgba(255,255,255,.3)}.lslide i{position:absolute;left:0;right:0;bottom:0;border-radius:2px;background:#fff}
+.lbar{position:absolute;left:24px;right:24px;bottom:18px;display:flex;gap:8px;align-items:center}
+.lbtn{height:42px;min-width:42px;padding:0 12px;border-radius:21px;background:rgba(90,96,112,.55);display:flex;align-items:center;justify-content:center;gap:6px;font:500 14px/20px Roboto;color:var(--fg1)}
+.lbtn.hl{background:rgba(1,163,254,.28);box-shadow:inset 0 0 0 1px rgba(1,163,254,.7)}
+.lseek{position:absolute;left:24px;right:24px;bottom:72px;height:22px}
+.lseek .seekbar{left:0;right:0}
+.ltime{position:absolute;left:24px;bottom:98px;font:500 12px/16px Roboto}
+.lmin{position:absolute;right:24px;bottom:96px}
+.lpill{position:absolute;left:24px;top:62px}
+.lpanel{position:absolute;top:0;bottom:0;width:373px;background:var(--bg-player);display:flex;flex-direction:column;z-index:20;animation:pin .3s ease-out}
+.lpanel.r{right:0}.lpanel.l{left:0}
+@keyframes pin{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
+.lpanel.l{animation-name:pinl}@keyframes pinl{from{transform:translateX(-40px);opacity:0}to{transform:none;opacity:1}}
+.lpanel .panewrap{flex:1}
+.lscrim{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:15}
+
+/* ---------- vstupní body ---------- */
+.page{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg-base)}
+.appbar{flex:none;display:flex;align-items:center;gap:12px;height:56px;padding:0 12px;margin-top:var(--sbh)}
+.appbar .bk{width:40px;height:40px;border-radius:50%;background:rgba(90,96,112,.4);display:grid;place-items:center}
+.appbar b{font:500 18px/24px Roboto}
+.appbar .sp{flex:1}
+.dchips{flex:none;display:flex;gap:8px;padding:2px 12px 10px;overflow:hidden}
+.pbody{flex:1;min-height:0;overflow-y:auto}.pbody::-webkit-scrollbar{width:0}
+.itm{display:flex;gap:12px;padding:8px 12px;align-items:flex-start;cursor:pointer;width:100%;text-align:left}
+.itm .th{position:relative;width:112px;height:63px;border-radius:10px;background-color:#2a303d;flex:none}
+.itm .th .bd{position:absolute;left:5px;top:5px;font:700 9px/1 Roboto;padding:3px 5px;border-radius:5px;background:var(--error);letter-spacing:.4px}
+.itm .th .pb{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.25)}.itm .th .pb i{display:block;height:100%;background:var(--brand)}
+.itm .tx{flex:1;min-width:0}
+.itm .tx b{display:block;font:500 14px/20px Roboto}
+.itm .tx>span{display:block;font:400 12px/16px Roboto;color:var(--fg2)}
+.tabbar{position:absolute;left:14px;right:14px;bottom:24px;height:60px;border-radius:30px;background:rgba(36,40,52,.78);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.08);display:flex;padding:5px;z-index:40}
+.tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:25px;font:600 10px/12px Roboto;color:var(--fg2)}
+.tabbar button.on{color:var(--brand);background:rgba(255,255,255,.09)}
+.bnav{flex:none;height:48px;background:var(--bg-raised);display:flex;align-items:center;justify-content:space-around;color:#7a8293}.bnav .on{color:#fff}
+.ptitle{padding:6px 16px 8px;margin-top:var(--sbh);display:flex;align-items:center;justify-content:space-between}.ptitle b{font:700 24px/32px Roboto}
+.hero{position:relative;flex:none;height:200px;margin-top:var(--sbh);background-color:#232a38}
+.hero .bk{position:absolute;left:12px;top:10px;width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.45);display:grid;place-items:center}
+.dtl{padding:14px 16px 0}
+.dtl h1{font:500 22px/28px Roboto}.dtl .meta{font:400 13px/20px Roboto;color:var(--fg2);margin-top:4px}
+.playbtn{display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:12px;background:var(--brand-600);font:500 15px/20px Roboto;margin:14px 0 10px;width:100%;color:#fff}
+.acts{display:flex;gap:6px;margin-bottom:12px}.acts div{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font:400 11px/14px Roboto;color:var(--fg2);text-align:center;padding:6px 2px}
+.dtabs{display:flex;gap:8px;padding:0 16px 12px;overflow:hidden}
+.mini{display:flex;flex-direction:column;gap:8px;padding:0 16px 24px}
+.cta{display:flex;align-items:center;justify-content:center;gap:8px;height:44px;border-radius:12px;background:var(--bg-subtle);font:500 14px/20px Roboto;width:100%}
+
+/* ---------- číslované značky ---------- */
+.mk-on [data-mk]::before{content:attr(data-mk);position:absolute;left:-6px;top:-6px;z-index:20;min-width:18px;height:18px;padding:0 3px;border-radius:9px;background:var(--mk);color:#222;font:700 11px/18px Roboto;text-align:center;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.5)}
+.mk-on .seekbar[data-mk]::before{top:-18px;left:auto;right:8px}.mk-on .vpill[data-mk]::before{left:-8px;top:-9px}.mk-on .seg button[data-mk]::before{top:-6px;left:auto;right:4px}
+.mk-on .lbtn[data-mk]::before{top:-9px;left:auto;right:-4px}.mk-on .pane[data-mk]::before{left:auto;right:8px;top:6px}.mk-on .live-line[data-mk]::before{left:auto;right:-4px;top:-9px}.mk-on .badge[data-mk]::before{left:auto;right:-8px;top:-9px}
+.mk-on .toast[data-mk]::before{left:auto;right:-4px;top:-6px}.mk-on .sheet [data-mk]::before{left:4px;top:2px}.mk-on .lpanel[data-mk]::before{left:8px;top:8px}
+.hl-note{outline:2px solid var(--mk);outline-offset:2px;border-radius:12px}
+
+/* ---------- ostatní záložky (dokument) ---------- */
+.doc{flex:1;overflow:auto;padding:24px 32px 60px}
+.doc .in{max-width:1080px;margin:0 auto}
+.doc h2{font-size:22px;margin:0 0 6px}.doc h3{font-size:15px;margin:26px 0 8px}
+.doc p{margin:6px 0;line-height:1.55;color:#374151;max-width:900px}
+.doc ul.l{margin:6px 0 6px 0}.doc ul.l li{position:relative;padding:3px 0 3px 18px;line-height:1.5;color:#374151}.doc ul.l li::before{content:'•';position:absolute;left:4px;color:#0181cb}
+.doc table{border-collapse:collapse;width:100%;background:#fff;border:1px solid #dcdfe6;border-radius:8px;overflow:hidden;font-size:13px}
+.doc th,.doc td{padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:top}.doc th{background:#f3f4f6;font-weight:600}
+.doc code{background:#eef0f4;padding:1px 5px;border-radius:4px;font-size:12px}
+.pill-ok{display:inline-block;background:#e8f7ee;color:#0b6b3a;border-radius:999px;padding:1px 8px;font-size:12px}
+.alts{display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap;margin-top:14px}
+.alt{width:430px}.alt .frame{width:max-content;border-radius:8px}
+.alt h3{margin-top:0}.alt .vd{margin-top:8px;font-weight:600}
+.alt .pc{display:flex;gap:16px}.alt .pc ul{flex:1}
+.alt .sc{transform-origin:top left}
+
+/* ---------- varianty umístění ---------- */
+.strip{flex:none;display:flex;align-items:center;gap:8px;height:48px;padding:0 14px;background:var(--bg-raised);border-top:1px solid var(--border);font:700 13px/16px Roboto}
+.strip .sc{font-size:14px}.strip .sp{flex:1;text-align:right;font-weight:400;color:var(--fg3);font-size:12px}
+.msheet{position:absolute;left:0;right:0;bottom:0;top:46%;background:var(--bg-player);border-radius:16px 16px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.5);z-index:30;overflow:hidden}
+.msheet .hnd{width:32px;height:4px;border-radius:2px;background:rgba(255,255,255,.4);margin:8px auto 0}
+.lpill .vpill{position:static;transform:none;left:auto;bottom:auto}
+
+/* solo (pro snímky obrazovky a sdílení stavu odkazem) */
+body.solo{background:#e4e6eb}
+body.solo .top,body.solo .tabs,body.solo .ctl,body.solo .notes,body.solo .cap{display:none}
+body.solo .layout{padding:0;gap:0}
+
+.mk-on .dtabs[data-mk]::before{left:6px;top:-6px}
+
+.mk-on .chips[data-mk]::before{left:4px;top:-2px}
+.hint2{font:400 12px/16px Roboto;color:var(--fg3);padding:0 2px 2px}
+.alts{gap:28px}.alt{width:310px}.alt .pc{display:block}.alt .pc ul+ul{margin-top:4px}.doc .in{max-width:1180px}
+
+/* iOS: celoobrazovkový overlay (contentInfoOverlay) */
+.lov{position:absolute;inset:0;z-index:20;background:rgba(5,7,10,.82);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);display:flex;flex-direction:column;animation:lovin .3s ease-out}
+@keyframes lovin{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.lovsw{flex:none;width:420px;max-width:100%;height:46px;margin:24px auto 14px;padding:8px 16px}.lovsw .seg{height:30px}
+.lovx{position:absolute;right:16px;top:12px}
+.lovbody{flex:1;min-height:0;display:flex;overflow:hidden}
+.hstrip{display:flex;gap:12px;overflow-x:auto;padding:4px 24px;align-items:flex-start;width:100%}.hstrip::-webkit-scrollbar{height:0}
+.hcard{flex:none;width:176px;display:flex;flex-direction:column;gap:2px}
+.hcard .lg{width:176px;height:100px;border-radius:12px;background:linear-gradient(#e9eff7,#cdd8e8);display:grid;place-items:center;color:#334155;font:700 13px Roboto;margin-bottom:4px;text-align:center}
+.hcard .cn{font:400 12px/16px Roboto;color:var(--fg2)}.hcard .pt{font:500 14px/20px Roboto;display:block}.hcard .tm{font:400 12px/16px Roboto;color:var(--fg3)}
+.hcard .pr{display:block;height:3px;background:rgba(255,255,255,.18);margin-top:2px}.hcard .pr i{display:block;height:100%;background:var(--brand)}
+.mcol1{flex:none;width:400px;overflow-y:auto}.mcol2{flex:1;min-width:0;overflow-y:auto}.mcol1::-webkit-scrollbar,.mcol2::-webkit-scrollbar{width:0}
+.mcol1 .mp{padding:0 12px 12px 24px}.mcol2 .mp{padding:0 24px 20px 4px}
+.mcol1 .chips{position:static;margin:0;padding:0;background:none}
+.mk-on .lov[data-mk]::before{left:8px;top:8px}
+
+.notes li>span{min-width:0;overflow-wrap:anywhere}.notes code{font-size:11.5px;background:#eef0f4;padding:0 4px;border-radius:4px;overflow-wrap:anywhere}
+
+/* ---------- skutečné rozměry a barvy přehrávače (Android PlayerParams / OverlayCommonComponents) ---------- */
+.vslot{position:absolute;inset:0}
+.vslot video,#vhold video{width:100%;height:100%;object-fit:cover;display:block;background:#000;opacity:0;transition:opacity .4s}
+.vslot video.ok{opacity:1}
+.cb{background:rgba(20,22,31,.5)}
+.vtitle b{font:500 16px/24px Roboto}.vtitle span{font:400 14px/20px Roboto;color:rgba(255,255,255,.8)}
+.sk{width:44px;height:44px}.pb{width:64px;height:64px;display:grid;place-items:center;color:#fff}
+.vcenter{gap:48px}.lcenter{gap:116px}
+.lbtn{background:rgba(20,22,31,.5);padding:0 10px;font:500 14px/20px Roboto}
+.lbtn.hl{background:rgba(1,163,254,.28)}
+.lsi{position:absolute;top:84px;color:#fff;width:22px;display:grid;place-items:center}
+.lslide{top:114px}
+.sheet{background:rgba(27,30,41,.96)}.scrim{background:rgba(5,7,10,.85)}
+.ios .seg{background:rgba(234,236,242,.10)}.ios .seg button{font-weight:400}
+.ios .lovsw .seg button{font-weight:400}
+
+/* loga, avatary, osa */
+.crest{background:none!important;border:0!important;display:inline-block;flex:none}.crest svg{display:block}
+.vpill{gap:6px}.live-line .crest{margin:0 -1px}
+.tsw button{display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px}
+.pr2 .av{position:relative;width:48px;height:48px;border-radius:12px;background:linear-gradient(#2f3646,#1f2430);overflow:hidden;flex:none}
+.pr2 .av svg{display:block}.pr2 .av b{position:absolute;right:3px;bottom:2px;font:700 11px/14px Roboto;background:rgba(0,0,0,.6);border-radius:7px;padding:0 5px}
+.pitch .dt{box-shadow:0 0 0 2px rgba(255,255,255,.85)}.pitch .dt.c{box-shadow:0 0 0 2px var(--warn)}
+.seekbar .trk,.seekbar .buf,.seekbar .prog{bottom:7px}.seekbar .knob{bottom:1px}.seekbar .tick{bottom:13px}.seekbar .edge{bottom:7px}
+.seekbar{height:26px}.vtime{bottom:26px}.vfull{bottom:28px}.vpill{bottom:50px}
+.lseek .seekbar{height:26px}
+
+/* záložky podle šířky textu (dlouhý název „Sportovní statistiky“) */
+.seg button{flex:1 1 auto;padding:0 10px;white-space:nowrap}
+.crest{border-radius:50%;overflow:hidden}
+.lu .lul,.lu .lur{display:flex;flex-direction:column;gap:8px}
+/* iOS overlay na šířku: kompaktní hlavička + mřížka */
+.lovbody{overflow-y:auto}.lovbody::-webkit-scrollbar{width:0}
+.lmatch{width:100%;padding:0 24px 24px;display:flex;flex-direction:column;gap:10px}
+.lmh{display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:14px;background:var(--bg-raised)}
+.lmh .nm{font:500 15px/20px Roboto}.lmh .score{font:700 22px/28px Roboto;margin:0 4px}.lmh .sp{flex:1}
+.lmh .st{display:flex;align-items:center;gap:6px;font:700 12px/16px Roboto;letter-spacing:.3px}.lmh .go{color:var(--brand);font-weight:500}
+.lmh .lg2{font:400 12px/16px Roboto;color:var(--fg3);margin-left:6px}
+.lmatch .chips{position:sticky;top:0;margin:0 -24px;padding:6px 24px;background:#0c0e13;z-index:6}
+.lmatch .lst{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;align-items:start}
+.lmatch .lst>.gh,.lmatch .lst>.hint2,.lmatch .lst>.banner,.lmatch .lst>.empty{grid-column:1/-1}
+.lmatch.s2 .lst.lu{grid-template-columns:5fr 4fr}
+.lmatch .lu .lur{max-height:none}
+.mk-on .lmh[data-mk]::before{left:-6px;top:-6px}
+
+.lphd{flex:none;display:flex;align-items:center;justify-content:space-between;padding:10px 6px 4px 16px}.lphd b{font:500 18px/24px Roboto}
+.lov.st .lovbody{padding-top:14px}.lmtitle{font:500 18px/24px Roboto;padding:4px 40px 2px 0}
+.mk-on .lov.st[data-mk]::before{left:8px;top:8px}
+
+/* ---------- safe zóny na šířku: iPhone Dynamic Island + home indicator, Android výřez kamery ---------- */
+.ls.ios{--sl:62px;--sr:62px;--sbb:21px}.ls.and{--sl:32px;--sr:24px;--sbb:12px}
+.island-l{position:absolute;left:11px;top:50%;width:36px;height:124px;margin-top:-62px;border-radius:20px;background:#000;z-index:70;pointer-events:none}
+.ls .ltitle,.ls .lpill,.ls .ltime{left:var(--sl)}.ls .lcast,.ls .lmin{right:var(--sr)}
+.ls .lbar{left:var(--sl);right:var(--sr);bottom:calc(var(--sbb) + 6px)}.ls .lseek{left:var(--sl);right:var(--sr);bottom:calc(var(--sbb) + 60px)}
+.ls .ltime{bottom:calc(var(--sbb) + 86px)}.ls .lmin{bottom:calc(var(--sbb) + 84px)}
+.ls .lsi[style*="left"]{left:calc(var(--sl) - 22px)!important}.ls .lsi[style*="right"]{right:calc(var(--sr) - 22px)!important}
+.ls .lslide[style*="left"]{left:calc(var(--sl) - 13px)!important}.ls .lslide[style*="right"]{right:calc(var(--sr) - 13px)!important}
+.ls .lpanel.r{width:calc(373px + var(--sr));padding-right:var(--sr);padding-bottom:var(--sbb)}.ls .lpanel.l{width:calc(373px + var(--sl));padding-left:var(--sl);padding-bottom:var(--sbb)}
+.ls .lov{padding:0 var(--sr) var(--sbb) var(--sl)}.ls .lovx{right:calc(var(--sr) - 8px)}
+.ls .hstrip{padding-left:0;padding-right:0}
+/* panel statistik na šířku: nahoře pevně nadpis, skóre a záložky, scrolluje jen obsah */
+.lmtop{flex:none;display:flex;flex-direction:column;gap:10px;padding:0 0 10px}
+.lov .lmtop{padding:16px 0 10px}.lov.st .lovbody{padding-top:0}
+.lpanel .lmtop{padding:2px 12px 10px}
+.lmtop .chips{position:static;margin:0;padding:0;background:none}
+.lmatch{padding:0 0 24px}
+.lpanel .lmh{flex-wrap:nowrap;gap:8px;padding:8px 12px}.lpanel .lmh .lg2{display:none}.lpanel .lmh .score{font-size:20px}.lpanel .lmh .nm{font-size:14px}
+.mp.lpm{padding-top:2px}
+/* sestavy na šířku: přepínač přes celou šířku, hřiště vlevo, hráči vpravo */
+.lmatch.s2 .lst.lu{grid-template-columns:1fr 1fr;align-items:start}
+.lmatch .lu>.tsw{grid-column:1/-1}
+.lmatch .lu .lur>.gh{padding-top:0}
+.lmatch .lu .lul{position:sticky;top:0}
+/* iOS portrét: obsah nekončí pod home indicatorem */
+.ios .pl .mp{padding-bottom:42px}
+
+/* na šířku: nadpis a skóre odscrollují, záložky zůstanou přilepené nahoře */
+.chips .cr{display:flex;gap:8px;flex:none}
+.lov.st .lovbody{padding-top:16px}
+.lmatch .chips{position:sticky;top:0;margin:0;padding:8px 0;background:#0a0c11;z-index:6}
+.lmatch .lu .lul{top:56px}
+.lpanel .mp.lpm{padding-top:12px}.lpanel .lmtitle{padding:0 0 2px}
+.lpanel .mp.lpm .chips{margin:0 -12px;padding:8px 12px}
+
+/* samostatný pohled: titulek místo přepínače + podtržené záložky */
+.sbar2{flex:none;height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 16px;background:var(--bg-player);border-bottom:1px solid rgba(255,255,255,.08)}
+.sbar2 b{font:500 16px/24px Roboto}.sbar2 .gear{width:36px;height:36px}
+.utabs{display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:6;background:var(--bg-player);margin:-8px -12px 0;padding:0 12px;border-bottom:1px solid rgba(255,255,255,.12)}
+.ut{display:flex;flex:1;min-width:0}
+.ut button{flex:1;height:46px;position:relative;font:500 14px/20px Roboto;color:var(--fg2);white-space:nowrap}
+.ut button.on{color:var(--fg1)}
+.ut button.on::after{content:'';position:absolute;left:12px;right:12px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--brand)}
+.lmatch .utabs{margin:0;padding:0;background:#0a0c11}
+.lpanel .mp.lpm .utabs{margin:0 -12px;padding:0 12px}
+.mk-on .utabs[data-mk]::before{left:4px;top:2px}
+
+.sbar2 .cr,.utabs .cr{display:flex;gap:8px;flex:none;align-items:center}
+
+/* varianta Skóre + pilulky: kompaktní skóre a pilulky přilepené pod přepínačem */
+.mp.cmp{gap:12px}
+.mp.cmp .stk{position:sticky;top:0;z-index:6;background:var(--bg-player);margin:-8px -12px 0;padding:8px 12px 10px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid rgba(255,255,255,.08)}
+.mp.cmp .stk .chips{position:static;margin:0;padding:0;background:none}
+.pl .lmh{gap:8px;padding:8px 12px}.pl .lmh .lg2{display:none}.pl .lmh .nm{font-size:14px}.pl .lmh .score{font-size:20px}
+
+/* ---------- na šířku: video se zmenší, panel vedle (jako TV) ---------- */
+.ls.side{--pw:360px}
+.ls.side .svid{position:absolute;left:0;top:0;bottom:0;right:calc(var(--pw) + var(--sr));display:flex;align-items:center;justify-content:center;background:#000;animation:vshr .32s cubic-bezier(.2,.8,.2,1)}
+@keyframes vshr{from{right:0}}
+.ls.side .lvid{position:relative;left:auto;top:auto;bottom:auto;transform:none;width:100%;height:auto;max-height:100%;aspect-ratio:16/9}
+.ls.side .sctl{position:absolute;inset:0;background:rgba(0,0,0,.35);transition:opacity .2s}
+.ls.side .ctl-off .sctl{opacity:0;pointer-events:none}
+.ls.side .stop{position:absolute;left:calc(var(--sl) - 10px);right:12px;top:12px;display:flex;gap:4px;align-items:flex-start}
+.ls.side .stop .vtitle b{font-size:14px;line-height:20px}.ls.side .stop .vtitle span{font-size:12px;line-height:16px}
+.ls.side .scen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:40px}
+.ls.side .sbot{position:absolute;left:calc(var(--sl) - 10px);right:12px;bottom:calc(var(--sbb) + 4px)}
+.ls.side .stime{display:block;font:500 12px/16px Roboto;margin-bottom:2px}
+.ls.side .sbot .seekbar{position:relative;height:26px}
+.ls.side .spanel{position:absolute;top:0;right:0;bottom:0;width:calc(var(--pw) + var(--sr));padding-right:var(--sr);padding-bottom:var(--sbb);background:var(--bg-player);border-left:1px solid rgba(255,255,255,.06);animation:pin .32s cubic-bezier(.2,.8,.2,1)}
+.ls.side .spanel .pane{position:absolute;inset:0 var(--sr) var(--sbb) 0}
+.ls.side .lmh .lg2{display:none}.ls.side .lmh{padding:8px 12px;gap:8px}.ls.side .lmh .score{font-size:20px}.ls.side .lmh .nm{font-size:14px}
+.mk-on .spanel[data-mk]::before{left:8px;top:8px}
+
+.ls.side .chips .chip,.lpanel .chips .chip{padding:0 12px}.ls.side .chips .l,.lpanel .chips .l{gap:6px}.ls.side .chips .cr,.lpanel .chips .cr{gap:6px}
+
+/* animace jen při otevření panelu, ne při každém překreslení (přepnutí záložky) */
+#screen:not(.anim) .svid,#screen:not(.anim) .spanel,#screen:not(.anim) .lpanel,#screen:not(.anim) .lov{animation:none!important}
+
+/* nastavení na šířku: sheet uprostřed, max. šířka (iOS landscapePanelWidthFraction, Android bottom_sheet_width_max) */
+.ls .scrim{z-index:80}.ls .sheet{left:50%;right:auto;width:min(560px,75%);transform:translateX(-50%);max-height:calc(100% - 24px);overflow-y:auto;padding-bottom:calc(var(--sbb) + 12px)}
+
+/* katalog: všechny řádky stejně vysoké (výška náhledu), živé skóre a štítek na jednom řádku */
+.itm{height:79px;overflow:hidden;align-items:center}
+.itm .tx b,.itm .tx>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.live-line.itl{margin-top:3px;flex-wrap:nowrap;white-space:nowrap}.live-line.itl .badge{margin-right:4px;height:18px}
+
+/* ---------- design: skutečné assety a dotažení ---------- */
+.crest.im{background:#fff!important;display:grid;place-items:center;overflow:hidden}.crest.im img{width:72%;height:72%;object-fit:contain;display:block}
+.av.ph2{background:#eaecf2 url(../../img/sp-avatar.png) 60% 14%/165% auto no-repeat!important}
+.av.ph2 b{position:absolute;right:3px;bottom:2px;font:700 11px/14px Roboto;background:rgba(0,0,0,.65);color:#fff;border-radius:7px;padding:0 5px}
+.evimg{display:block;flex:none;border-radius:50%}
+.chrow .lg img,.hcard .lg img{max-width:62%;max-height:62%;object-fit:contain;display:block}
+.chrow .lg.tm2{width:64px;font:700 13px Roboto;color:#334155}
+.mth{position:relative;width:100%;height:100%;border-radius:inherit;display:flex;align-items:center;justify-content:center;gap:8px;background:radial-gradient(120% 90% at 50% 0%,#1f4a3a 0%,#0f1d21 70%);overflow:hidden}
+.mth::after{content:'';position:absolute;left:50%;top:-20%;bottom:-20%;width:1px;background:rgba(255,255,255,.08)}
+.mth .vs{font:700 11px/1 Roboto;color:var(--fg2);z-index:1}.mth .crest{z-index:1;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.mth.sp{background:linear-gradient(135deg,var(--g),#0f1d21);flex-direction:column;gap:4px;color:var(--fg2)}.mth.sp::after{display:none}
+.mth .bd{position:absolute;left:5px;top:5px;font:700 9px/1 Roboto;padding:3px 5px;border-radius:5px;background:var(--error);letter-spacing:.4px;color:#fff;z-index:2}
+.mth .pb{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.25);z-index:2}.mth .pb i{display:block;height:100%;background:var(--brand)}
+.itm .th{overflow:hidden;background:none}
+.mhero{background:none!important}.mhero .mth{border-radius:0;gap:22px}.mhero .mth .vs{font:700 26px/1 Roboto;color:#fff;font-variant-numeric:tabular-nums}
+.mhero .hmeta{position:absolute;left:0;right:0;bottom:12px;text-align:center;font:500 12px/16px Roboto;color:var(--fg2)}
+.score,.min,.vtime,.ltime,.stime,.sr .vals b,.vpill .sc,.scp,.live-line b,.mth .vs{font-variant-numeric:tabular-nums}
+.chip,.ev,.lbtn,.cb,.gear,.seg button,.tsw button,.itm,.chrow,.ai,.banner button,.cta,.playbtn{transition:transform .12s ease-out,background-color .15s,opacity .15s}
+.chip:active,.lbtn:active,.cb:active,.gear:active,.seg button:active,.tsw button:active,.banner button:active,.cta:active,.playbtn:active{transform:scale(.96)}
+.ev:active,.itm:active,.chrow:active,.ai:active{opacity:.75}
+.video,.lvid{background-color:#0b0d12}
+
+.vslot video{opacity:1!important}
+
+/* detail: záložka Sportovní statistiky jako stránka se sekcemi */
+.dst{display:flex;align-items:center;gap:6px;font:700 12px/16px Roboto;letter-spacing:.3px}.dst .sp{flex:1;text-align:right;font-weight:400;color:var(--fg3);letter-spacing:0}
+.dsec{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.dsh{display:flex;align-items:center;justify-content:space-between;min-height:32px}.dsh b{font:500 16px/24px Roboto}
+.dsh button{display:flex;align-items:center;gap:0;font:500 13px/18px Roboto;color:var(--brand)}
+.empty.sm{padding:16px 12px;background:var(--bg-raised);border-radius:12px}.empty.sm b{font-size:14px}
+.dlu .lur{display:none}.dlu .lst.lu{gap:8px}
+
+.tabbar button .ic,.bnav .ic{color:currentColor}.acts .ic{margin:0 auto}
+/* kompaktní hlavička: nic se nezalamuje, při start over je „Živě“ pod stavem */
+.lmh .nm,.lmh .score,.lmh .st{white-space:nowrap;flex:none}
+.lmh .st:has(.go){flex-direction:column;align-items:flex-end;gap:2px}
+.lmh .st .go{font:600 13px/16px Roboto;letter-spacing:0}
+/* úzký boční panel na šířku: jen loga a skóre, aby se vešel stav i „Živě“ */
+.ls.side .lmh .nm,.lpanel .lmh .nm{display:none}
+/* detail: hero odjede se scrollem, záložky zůstanou přilepené nahoře */
+.dpage{padding-top:var(--sbh);background:var(--bg-base)}
+.dpage .hero{margin-top:0}
+.dpage .dtabs{position:sticky;top:0;z-index:6;background:var(--bg-base);padding-top:10px;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,.06)}
+.dpage .dtabs .chip{flex:none}
+/* detail → celá obrazovka Průběh/Statistiky/Sestavy (bez videa) */
+.dfull .appbar .bk{cursor:pointer}
+.dfull .appbar .tt{display:flex;flex-direction:column;min-width:0}.dfull .appbar .tt b{font:500 17px/22px Roboto}.dfull .appbar .tt span{font:400 12px/16px Roboto;color:var(--fg2)}
+.dfull .mp.cmp .stk{background:var(--bg-base)}
+.ios .dfull .mp{padding-bottom:42px}
+.dfull .lmh{gap:8px;padding:8px 12px}.dfull .lmh .lg2{display:none}.dfull .lmh .nm{font-size:14px}.dfull .lmh .score{font-size:20px}
+.ev.info{cursor:default}.ev.info:active{background:var(--bg-raised);opacity:1}
+/* detail: Přehrát je dostupné pořád (plovoucí tlačítko dole) */
+.dplay{position:absolute;left:50%;bottom:24px;z-index:20;display:flex;align-items:center;gap:8px;height:48px;padding:0 22px;border-radius:12px;background:var(--brand-600);color:#fff;font:500 15px/20px Roboto;box-shadow:0 8px 24px rgba(0,0,0,.5);white-space:nowrap;transform:translate(-50%,90px);opacity:0;pointer-events:none;transition:transform .2s ease-out,opacity .2s}
+.dplay.on{transform:translate(-50%,0);opacity:1;pointer-events:auto}
+.ios .dplay{bottom:34px}
+.dpage .pbody,.dfull .pbody{padding-bottom:96px}
+/* oznámení: menší kapsle uprostřed */
+.toast{left:0;right:0;margin:0 auto;width:max-content;max-width:calc(100% - 32px);gap:8px;padding:5px 14px 5px 5px;border-radius:999px}
+.toast .evi{width:28px;height:28px;border-radius:50%}.toast .evi .card{width:10px;height:13px}
+.toast .tx b{font:600 13px/17px Roboto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.toast .tx span{font:400 11px/14px Roboto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toast .go{font:600 12px/16px Roboto;padding:4px 0 4px 6px;border-left:1px solid rgba(255,255,255,.12);margin-left:4px}
+.toast.plain{padding:8px 16px}
+.toast{pointer-events:none;padding-right:16px}
+/* řádky událostí jako na TV: bez boxu, podklad jen při dotyku (na TV při fokusu), štítky plné bez rámečku */
+.lst:has(> .ev){gap:2px}
+.ev{background:transparent;padding:8px 8px 8px 6px}
+.ev:active{background:var(--bg-raised);opacity:1}
+.ev.info:active{background:transparent}
+.tag{border:none;background:rgba(255,255,255,.12);padding:2px 7px}
+.scp{background:rgba(255,255,255,.12);color:var(--fg);padding:2px 7px;font-variant-numeric:tabular-nums}
+.ev .evi{background:transparent}
+/* seskupený seznam: jedna karta na poločas, uvnitř tenké oddělovače od textu doprava */
+.grp{background:var(--bg-raised);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.grp .ev{position:relative;border-radius:0;padding:8px 12px 8px 10px}
+.grp .ev+.ev::before{content:'';position:absolute;left:52px;right:0;top:0;height:1px;background:rgba(255,255,255,.08)}
+.grp .ev:active{background:var(--bg-raised2)}.grp .ev.info:active{background:transparent}
+.grp{overflow:visible}.grp .ev:first-child{border-radius:12px 12px 0 0}.grp .ev:last-child{border-radius:0 0 12px 12px}.grp .ev:only-child{border-radius:12px}
+/* bez boxů: jen oddělovače mezi řádky */
+.grp{background:transparent;border-radius:0}
+.grp .ev{padding:10px 8px 10px 6px}
+.grp .ev+.ev::before{left:48px;background:rgba(255,255,255,.1)}
+.grp .ev:active{background:rgba(255,255,255,.06)}
+/* ikony událostí jako na TV: kulatý podklad Gray/650 (#484F61), stejný jako v sp-goal/sp-sub */
+.ev .evi{background:#484F61;border-radius:50%}
+.grp .ev+.ev::before{left:6px}
+.ev .evi{background:rgba(255,255,255,.12)}
+/* statistiky a hráči jako na TV: bez boxů. Statistiky drží rytmus pruhy, hráči mají oddělovače jako události */
+.sr{background:transparent;border-radius:0;padding:10px 6px 12px}
+.lst:has(> .sr){gap:2px}
+.pr2{position:relative;background:transparent;border-radius:0;padding:10px 8px}
+.lu .lur{gap:0}
+.pr2+.pr2::before{content:'';position:absolute;left:6px;right:0;top:0;height:1px;background:rgba(255,255,255,.1)}
+.pr2:active{background:rgba(255,255,255,.06)}
+/* řádek se skóre a týmy bez boxu, zarovnaný s řádky seznamu */
+.lmh,.pl .lmh,.ls.side .lmh,.lpanel .lmh,.dfull .lmh{background:transparent;border-radius:0;padding:4px 6px}
+/* pozadí sportovního panelu jako na TV (Figma Second screens set / Common 4782:1514): petrolová nahoře → vínová dole */
+:root{--sport-bg:linear-gradient(170deg,#041622 0%,#081520 22%,#0f1119 50%,#140d12 78%,#160c0f 100%);--sport-top:#041622}
+.panewrap.sport,.ls.side .spanel,.dfull{background:var(--sport-bg)}
+.panewrap.sport .mp.cmp .stk,.ls.side .spanel .stk,.dfull .mp.cmp .stk{background:linear-gradient(90deg,#041622,#05121c)}
+.dfull .appbar{position:relative;z-index:7}
+/* gradient začíná hned pod videem (i pod přepínačem) */
+.pl.sport{background:var(--sport-bg) 0 var(--vtop)/100% calc(100% - var(--vtop)) no-repeat,var(--bg-player)}
+.pl.sport .segwrap,.pl.sport .panewrap{background:transparent}
+.pl.sport .mp.cmp .stk{background:linear-gradient(90deg,#05151f,#06121b)}
+.ls.side .spanel .chips{background:linear-gradient(90deg,#061520,#07121a)}
+/* hřiště: tečky jako na TV (bez čísel), vybraný hráč modře s aurou; zvýrazněný řádek */
+.pitch .dt{width:14px;height:14px;margin:-7px 0 0 -7px;background:rgba(234,236,242,.85);box-shadow:none;font-size:0;cursor:pointer}
+.pitch .dt.on{width:18px;height:18px;margin:-9px 0 0 -9px;background:var(--brand);box-shadow:0 0 0 5px rgba(1,163,254,.25);z-index:1}
+.form{color:var(--fg2)}
+.pr2{cursor:pointer}.pr2.on{background:var(--bg-subtle);border-radius:12px}.pr2.on::before,.pr2.on+.pr2::before{display:none}
+/* tečky s číslem dresu (TV styl + čitelnost na mobilu) */
+.pitch .dt{width:20px;height:20px;margin:-10px 0 0 -10px;font:700 10px/1 Roboto;color:#1b1e29;font-variant-numeric:tabular-nums}
+.pitch .dt.on{width:24px;height:24px;margin:-12px 0 0 -12px;color:#fff;font-size:11px}
+/* loga týmů bez bílého podkladu (jako ve Figmě) */
+.crest.im{background:none!important}.crest.im img{width:100%;height:100%}
+.mth .crest{box-shadow:none}
+/* taby přehrávače jako ve Figmě: chipy Tab base (padding 12/6, Text sm Medium), rolují se, když se nevejdou */
+.chip{padding:0 12px}
+.ptabs{flex:none;display:flex;gap:8px;padding:8px 12px;overflow-x:auto;scrollbar-width:none;position:relative;z-index:2}.ptabs::-webkit-scrollbar{display:none}
+.ptabs .chip{flex:none}
+/* sestava: hřiště přilepené pod hlavičkou (výběr hráče je vždy vidět) */
+.mp.cmp .lu .lul{position:sticky;z-index:5;margin:0 -12px;padding:0 12px 8px;box-shadow:0 8px 12px -10px rgba(0,0,0,.6)}
+.mp.cmp .lu .pitch{height:150px}
+/* kompaktní stav: hřiště se poměrově zmenší na mapku vlevo, vedle vybraný hráč (bez deformace) */
+.lusel{display:none}
+.mp.cmp .lu .lul.mini{padding-bottom:8px}
+.mp.cmp .lu .lul.mini .form{display:none}
+.mp.cmp .lu .lul.mini .luw{display:flex;align-items:center;gap:12px}
+.mp.cmp .lu .lul.mini .pitch{flex:none;width:366px;height:150px;transform:scale(.46);transform-origin:0 0;margin:0 -198px -81px 0}
+.mp.cmp .lu .lul.mini .pitch .dt{font-size:0}
+.mp.cmp .lu .lul.mini .lusel{display:flex;align-items:center;gap:10px;min-width:0}
+.lusel .n{flex:none;width:28px;height:28px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font:700 12px/1 Roboto;box-shadow:0 0 0 4px rgba(1,163,254,.25)}
+.lusel .tx{min-width:0}.lusel b{display:block;font:500 14px/20px Roboto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lusel .tx span{display:block;font:400 12px/16px Roboto;color:var(--fg2)}
+/* na šířku: přilepené / kompaktní hřiště v bočním panelu */
+.ls.side .mp.cmp .lu .lul{background:linear-gradient(90deg,#061520,#07121a)}
+/* rozestavení: domácí brand, hosté secondary */
+.form{color:var(--brand)}.form.away{color:var(--fg2)}
+/* hosté: druhá brandová barva Foundations Brand/Secondary/500 */
+:root{--brand2:#d85c5b}
+.form.away{color:var(--brand2)}
+/* barva týmu: domácí brand, hosté Brand/Secondary/500; vybraný hráč bílý s aurou v barvě týmu */
+.lul{--team:var(--brand);--team-a:rgba(1,163,254,.25)}.lul.away{--team:var(--brand2);--team-a:rgba(216,92,91,.3)}
+.pitch .dt{background:var(--team);color:#fff}
+.pitch .dt.on{background:#eaecf2;color:#1b1e29;box-shadow:0 0 0 5px var(--team-a)}
+.lusel .n{background:var(--team);box-shadow:0 0 0 4px var(--team-a)}
+.form.away{color:var(--brand2)}
+/* hosté: Foundations Error/500 (#F04438), aura Error/950 (#4D1810) — stejně jako ve Figmě */
+:root{--brand2:#f04438}.lul.away{--team:#f04438;--team-a:rgba(240,68,56,.25)}/* Error/500, aura Error/500 25 % */
+.ls.side .lvid{border-radius:12px;overflow:hidden}/* zmenšené video zaoblené (rounded-xl) */
+/* na šířku: zmenšené video respektuje levou safe zónu (jako ve Figmě), ovládání uvnitř videa */
+.ls.side .svid{left:var(--sl);background:transparent}
+.ls.side .stop{left:12px}.ls.side .sbot{left:12px}
+.ls.side .sctl{display:none}/* zmenšené video bez ovládání */.ls.side .svid{cursor:pointer}
+.ls.side .svid{right:calc(var(--pw) + var(--sr) + 16px)}/* mezera 16 mezi videem a panelem */
+/* zmenšené video: jen play/pauza uprostřed (klepnutí jinam zavře panel) */
+.ls.side .sctl{display:block;background:none;pointer-events:none}
+.ls.side .stop,.ls.side .sbot,.ls.side .scen .sk{display:none}
+.ls.side .scen .pb{pointer-events:auto}
+.ls.side .scen .pb{width:52px;height:52px;border-radius:50%;background:rgba(20,22,31,.5);display:grid;place-items:center}.ls.side .scen .pb svg{width:22px;height:auto}/* jako Action-button OnPlayer (background/player) */
+.ls.side .scen .pb{transition:opacity .2s}
+.ls.side .svid.ctl-off .scen .pb{opacity:0;pointer-events:none}
+.ls.side .svid.ctl-off .sctl{opacity:1}
+.ls.side .scen .pb{transition:opacity .4s ease-out}
+@keyframes pbOut{from{opacity:1}to{opacity:0}}
+.ls.side .svid.ctl-fade .scen .pb{animation:pbOut .4s ease-out forwards;animation-delay:var(--fd,0ms)!important;pointer-events:none}
+#screen:not(.anim) .ls.side .svid.ctl-fade .scen .pb{animation:pbOut .4s ease-out forwards!important;animation-delay:var(--fd,0ms)!important}
+/* na šířku: křížek pevně v pravém horním rohu panelu, pilulky mu po odscrollování drží místo */
+.ls.side .spanel .spx{position:absolute;top:8px;right:calc(var(--sr) + 12px);z-index:12}
+.ls.side .spanel .chips{padding-right:56px}
+.ls.side .spanel .lmtitle{padding:6px 48px 6px 0}
+.ls.side .spanel .lmtitle{padding:12px 48px 6px 0}
+.ls.side .spanel .spx{-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);background:rgba(234,236,242,.1)}/* křížek: background/subtle + background blur */
+/* fotka hráče podle TV: výřez jako Avatar (169×254 v 90 → posun −40/−9) */
+.av.ph2{background:#eaecf2 url(../../img/sp-avatar.png) -21px -5px/90px auto no-repeat!important}
+.av.phx{background:#eaecf2 url(img/sp-avatar-placeholder.svg) 0 0/100% 100% no-repeat!important}
+.av.phx b{position:absolute;right:3px;bottom:2px;font:700 11px/14px Roboto;background:rgba(0,0,0,.65);color:#fff;border-radius:7px;padding:0 5px}
+
+/* stavová tečka jako live-badge na TV: tečka + aura stejné barvy 20 %; Ukončeno červeně */
+.ld{width:6px;height:6px;box-shadow:0 0 0 3px rgba(18,183,106,.2)}
+.ld.end{background:var(--error);box-shadow:0 0 0 3px rgba(240,68,56,.2)}
+.lmh .st,.dst{gap:9px}
+/* přilepený nadpis poločasu pod hlavičkou (pilulkami); další poločas ho vytlačí */
+.hs{display:flex;flex-direction:column;gap:8px}
+.mp.cmp .hs>.gh{position:sticky;top:var(--stk,0);z-index:4;margin:-8px -12px -6px;padding:12px 14px 6px;background:var(--stkbg,var(--bg-player))}
+.lmatch .hs{display:contents}
+/* vybraný hráč: číslo na fotce v barvě týmu jako jeho tečka na hřišti (spojí řádek s hřištěm bez dalšího přebarvení) */
+.pr2.on .av b{background:var(--brand)}.pr2.on .av.away b{background:var(--error)}
